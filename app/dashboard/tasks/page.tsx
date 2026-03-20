@@ -127,28 +127,30 @@ export default function TasksPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between p-6 bg-linear-to-r from-blue-500/10 via-purple-500/10 to-blue-500/10 rounded-2xl border border-blue-500/20">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-4xl font-bold bg-linear-to-r from-blue-500 via-purple-500 to-blue-500 bg-clip-text text-transparent">
             Tasks
           </h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">
-            Manage and track your tasks
+          <p className="text-muted-foreground mt-2 text-lg">
+            Manage and track your tasks ✨
           </p>
         </div>
         <Link href="/dashboard/tasks/new">
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
+          <Button size="lg" className="shadow-lg hover:shadow-xl transition-shadow cursor-pointer">
+            <Plus className="mr-2 h-5 w-5" />
             New Task
           </Button>
         </Link>
       </div>
 
       {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-4 w-4" />
+      <Card className="border-2 hover-lift">
+        <CardHeader className="bg-linear-to-r from-primary/5 to-accent/5">
+          <CardTitle className="flex items-center gap-2 text-xl">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <Filter className="h-5 w-5 text-primary" />
+            </div>
             Filters
           </CardTitle>
           <CardDescription>Filter tasks by various criteria</CardDescription>

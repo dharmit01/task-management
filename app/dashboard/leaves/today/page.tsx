@@ -87,10 +87,10 @@ export default function TodayLeavesPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Members on Leave Today</h1>
-        <p className="text-gray-500 dark:text-gray-400 mt-1">
-          {getTodayDate()}
+      <div className="p-6 bg-linear-to-r from-blue-500/10 via-sky-500/10 to-blue-500/10 rounded-2xl border border-blue-500/20">
+        <h1 className="text-4xl font-bold bg-linear-to-r from-blue-500 via-sky-500 to-blue-500 bg-clip-text text-transparent">Members on Leave Today</h1>
+        <p className="text-muted-foreground mt-2 text-lg">
+          {getTodayDate()} 📅
         </p>
       </div>
 

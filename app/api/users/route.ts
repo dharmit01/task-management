@@ -110,6 +110,15 @@ export async function POST(request: NextRequest) {
       ...(managerId && { managerId }),
     });
 
+    // Ensure indexes are synced (important for username unique constraint)
+    await User.syncIndexes();
+
+    console.log("User created successfully:", {
+      id: newUser._id,
+      username: newUser.username,
+      name: newUser.name,
+    });
+
     // Return user data (without password)
     const userResponse = {
       id: newUser._id,

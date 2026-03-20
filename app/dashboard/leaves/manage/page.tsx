@@ -1,33 +1,33 @@
 'use client';
 
 import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/contexts/AuthContext';
@@ -66,11 +66,11 @@ export default function ManageLeavesPage() {
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  
+
   // Approve dialog state
   const [showApproveDialog, setShowApproveDialog] = useState(false);
   const [selectedLeave, setSelectedLeave] = useState<Leave | null>(null);
-  
+
   // Reject dialog state
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
@@ -90,7 +90,7 @@ export default function ManageLeavesPage() {
       if (statusFilter !== 'all') {
         params.append('status', statusFilter);
       }
-      
+
       const response = await apiClient.get<{ success: boolean; leaves: Leave[] }>(
         `/api/leaves?${params.toString()}`
       );
@@ -200,21 +200,20 @@ export default function ManageLeavesPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.back()}
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Manage Leaves</h1>
-            <p className="text-gray-500 dark:text-gray-400 mt-1">
-              Review and approve team leave requests
-            </p>
-          </div>
+      <div className="flex items-center gap-4 p-6 bg-linear-to-r from-green-500/10 via-emerald-500/10 to-green-500/10 rounded-2xl border border-green-500/20">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => router.back()}
+          className="shrink-0"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <div>
+          <h1 className="text-4xl font-bold bg-linear-to-r from-green-500 via-emerald-500 to-green-500 bg-clip-text text-transparent">Manage Leaves</h1>
+          <p className="text-muted-foreground mt-2 text-lg">
+            Review and approve team leave requests 📋
+          </p>
         </div>
       </div>
 
@@ -227,17 +226,17 @@ export default function ManageLeavesPage() {
           <div className="flex flex-row items-center gap-4">
             <Label>Status</Label>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger>
+              <SelectTrigger>
                 <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
+              </SelectTrigger>
+              <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="approved">Approved</SelectItem>
                 <SelectItem value="rejected">Rejected</SelectItem>
-            </SelectContent>
+              </SelectContent>
             </Select>
-        </div>
+          </div>
         </CardContent>
       </Card>
 
@@ -275,7 +274,7 @@ export default function ManageLeavesPage() {
                             {leave.leaveType === 'half' ? 'Half Day' : 'Full Day'}
                           </Badge>
                         </div>
-                        
+
                         <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mb-3">
                           <div className="flex items-center gap-1">
                             <Mail className="h-4 w-4" />

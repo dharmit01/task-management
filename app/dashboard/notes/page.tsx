@@ -1,15 +1,15 @@
 'use client';
 
 import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -87,16 +87,16 @@ export default function NotesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center p-6 bg-linear-to-r from-purple-500/10 via-pink-500/10 to-purple-500/10 rounded-2xl border border-purple-500/20">
         <div>
-          <h1 className="text-3xl font-bold">Notes</h1>
-          <p className="text-muted-foreground mt-1">
-            Manage your personal notes with rich text formatting
+          <h1 className="text-4xl font-bold bg-linear-to-r from-purple-500 via-pink-500 to-purple-500 bg-clip-text text-transparent">Notes</h1>
+          <p className="text-muted-foreground mt-2 text-lg">
+            Manage your personal notes with rich text formatting ✍️
           </p>
         </div>
         <Link href="/dashboard/notes/new">
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
+          <Button size="lg" className="shadow-lg hover:shadow-xl transition-shadow">
+            <Plus className="mr-2 h-5 w-5" />
             New Note
           </Button>
         </Link>

@@ -6,6 +6,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -15,18 +23,36 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { apiClient } from '@/lib/api-client';
 import dayjs from "dayjs";
-import { ArrowLeft, Calendar, Edit, Mail, Save, UserCheck, UserX } from 'lucide-react';
+import { ArrowLeft, Calendar, Edit, Mail, Save, UserCheck, UserX, Users } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+
+type UserRole = 'Admin' | 'Member' | 'Manager';
+
+interface ManagerOption {
+  _id: string;
+  name: string;
+  role: UserRole;
+}
+
+interface TeamMember {
+  _id: string;
+  name: string;
+  username: string;
+  email?: string;
+  role: 'Member';
+  isActive: boolean;
+  annualLeaveBalance: number;
+}
 
 interface Member {
   _id: string;
   name: string;
   username: string;
   email?: string;
-  role: 'Admin' | 'Member' | 'Manager';
+  role: UserRole;
   isActive: boolean;
   annualLeaveBalance: number;
   managerId?: {
@@ -36,6 +62,30 @@ interface Member {
     email?: string;
   } | string;
   createdAt: string;
+}
+
+interface MemberDetailResponse {
+  success: boolean;
+  user: Member;
+  teamMembers?: TeamMember[];
+}
+
+interface UsersResponse {
+  success: boolean;
+  users: Array<ManagerOption & { role: UserRole }>;
+}
+
+interface TasksResponse {
+  tasks?: Task[];
+}
+
+interface UpdateUserPayload {
+  name: string;
+  username: string;
+  email?: string;
+  role: UserRole;
+  isActive: boolean;
+  managerId?: string;
 }
 
 interface Task {
@@ -62,7 +112,8 @@ export default function MemberDetailPage({ params }: { params: Promise<{ id: str
   const { isAdmin } = useAuth();
   const [memberId, setMemberId] = useState<string>('');
   const [member, setMember] = useState<Member | null>(null);
-  const [managers, setManagers] = useState<any[]>([]);
+  const [managers, setManagers] = useState<ManagerOption[]>([]);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingLeaveBalance, setEditingLeaveBalance] = useState(false);
@@ -98,8 +149,9 @@ export default function MemberDetailPage({ params }: { params: Promise<{ id: str
 
   const fetchMemberDetails = async () => {
     try {
-      const response = await apiClient.get<any>(`/api/users/${memberId}`);
+      const response = await apiClient.get<MemberDetailResponse>(`/api/users/${memberId}`);
       setMember(response.user);
+      setTeamMembers(response.teamMembers || []);
       setLeaveBalance(response.user.annualLeaveBalance || 15);
       const managerIdValue = response.user.managerId?._id || response.user.managerId || '';
       setUserForm({
@@ -117,9 +169,9 @@ export default function MemberDetailPage({ params }: { params: Promise<{ id: str
 
   const fetchManagers = async () => {
     try {
-      const response = await apiClient.get<any>('/api/users');
+      const response = await apiClient.get<UsersResponse>('/api/users');
       const managersList = (response.users || []).filter(
-        (user: any) => (user.role === 'Manager' || user.role === 'Admin') && user._id !== memberId
+        (user) => (user.role === 'Manager' || user.role === 'Admin') && user._id !== memberId
       );
       setManagers(managersList);
     } catch (error) {
@@ -130,7 +182,7 @@ export default function MemberDetailPage({ params }: { params: Promise<{ id: str
   const fetchMemberTasks = async () => {
     try {
       setLoading(true);
-      const response = await apiClient.get<any>(`/api/tasks?assignedTo=${memberId}`);
+      const response = await apiClient.get<TasksResponse>(`/api/tasks?assignedTo=${memberId}`);
       setTasks(response.tasks || []);
     } catch (error) {
       console.error('Failed to fetch member tasks:', error);
@@ -167,6 +219,13 @@ export default function MemberDetailPage({ params }: { params: Promise<{ id: str
       default:
         return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
     }
+  };
+
+  const getRoleBadgeClass = (role: UserRole) => {
+    if (role === 'Admin') return 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300 border-purple-200 dark:border-purple-700';
+    if (role === 'Manager') return 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 border-blue-200 dark:border-blue-700';
+
+    return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 border-emerald-200 dark:border-emerald-700';
   };
 
   const isOverdue = (endDate: string, status: string) => {
@@ -215,7 +274,7 @@ export default function MemberDetailPage({ params }: { params: Promise<{ id: str
 
     try {
       setUpdating(true);
-      const payload: any = {
+      const payload: UpdateUserPayload = {
         name: userForm.name,
         username: userForm.username,
         ...(userForm.email && { email: userForm.email }),
@@ -246,7 +305,7 @@ export default function MemberDetailPage({ params }: { params: Promise<{ id: str
     return (
       <div className="space-y-6">
         <Link href="/dashboard/members">
-          <Button variant="ghost" size="sm">
+          <Button variant="ghost" size="sm" className='cursor-pointer mb-4'>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Members
           </Button>
@@ -267,7 +326,7 @@ export default function MemberDetailPage({ params }: { params: Promise<{ id: str
   return (
     <div className="space-y-6">
       <Link href="/dashboard/members">
-        <Button variant="ghost" size="sm">
+        <Button variant="ghost" size="sm" className='cursor-pointer mb-4'>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Members
         </Button>
@@ -487,7 +546,7 @@ export default function MemberDetailPage({ params }: { params: Promise<{ id: str
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle>Annual Leave Balance</CardTitle>
-                <CardDescription>Manage member's yearly leave allocation</CardDescription>
+                <CardDescription>Manage member&apos;s yearly leave allocation</CardDescription>
               </div>
               {!editingLeaveBalance && (
                 <Button
@@ -677,6 +736,88 @@ export default function MemberDetailPage({ params }: { params: Promise<{ id: str
           )}
         </CardContent>
       </Card>
+
+      {member?.role === 'Manager' && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <CardTitle>Assigned Members</CardTitle>
+                <CardDescription>
+                  Members currently assigned to {member.name}
+                </CardDescription>
+              </div>
+              <span className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-medium text-blue-700 dark:text-blue-300">
+                <Users className="h-4 w-4" />
+                {teamMembers.length} {teamMembers.length === 1 ? 'member' : 'members'}
+              </span>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {teamMembers.length === 0 ? (
+              <p className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                No members are currently assigned to this manager.
+              </p>
+            ) : (
+              <div className="overflow-x-auto rounded-xl border">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-gray-50 dark:bg-gray-800/50">
+                      <TableHead className="pl-4 py-2">Member</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Role</TableHead>
+                      <TableHead>Leave Balance</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody className="bg-white">
+                    {teamMembers.map((teamMember) => (
+                      <TableRow
+                        key={teamMember._id}
+                        className="cursor-pointer"
+                        onClick={() => router.push(`/dashboard/members/${teamMember._id}`)}
+                      >
+                        <TableCell className="pl-4 py-4">
+                          <Link href={`/dashboard/members/${teamMember._id}`} className="group">
+                            <p className="font-medium text-gray-900 transition-colors group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400">
+                              {teamMember.name}
+                            </p>
+                            <p className="text-xs text-gray-400 dark:text-gray-500">
+                              @{teamMember.username}
+                            </p>
+                          </Link>
+                        </TableCell>
+                        <TableCell className="text-sm text-gray-600 dark:text-gray-400">
+                          {teamMember.email || <span className="text-gray-400">—</span>}
+                        </TableCell>
+                        <TableCell>
+                          <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${getRoleBadgeClass(teamMember.role)}`}>
+                            {teamMember.role}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-sm text-gray-700 dark:text-gray-300">
+                          {teamMember.annualLeaveBalance} days
+                        </TableCell>
+                        <TableCell>
+                          {teamMember.isActive ? (
+                            <span className="inline-flex items-center gap-1 rounded-full border border-green-200 bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700 dark:border-green-700 dark:bg-green-900/40 dark:text-green-300">
+                              <UserCheck className="h-3 w-3" /> Active
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700 dark:border-red-700 dark:bg-red-900/40 dark:text-red-300">
+                              <UserX className="h-3 w-3" /> Inactive
+                            </span>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

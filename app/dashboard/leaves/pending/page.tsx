@@ -4,12 +4,12 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -143,10 +143,10 @@ export default function PendingLeavesPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Pending Leave Approvals</h1>
-        <p className="text-gray-500 dark:text-gray-400 mt-1">
-          Review and approve leave applications
+      <div className="p-6 bg-linear-to-r from-amber-500/10 via-yellow-500/10 to-amber-500/10 rounded-2xl border border-amber-500/20">
+        <h1 className="text-4xl font-bold bg-linear-to-r from-amber-500 via-yellow-500 to-amber-500 bg-clip-text text-transparent">Pending Leave Approvals</h1>
+        <p className="text-muted-foreground mt-2 text-lg">
+          Review and approve leave applications ⏳
         </p>
       </div>
 

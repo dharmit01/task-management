@@ -44,7 +44,7 @@ export default function LeavesPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const viewingUserId = searchParams.get('userId');
-  
+
   const [leaves, setLeaves] = useState<Leave[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -57,7 +57,7 @@ export default function LeavesPage() {
       // Fetch balance for the user being viewed or current user
       const userIdToFetch = viewingUserId || user._id;
       fetchLeaveBalance(userIdToFetch);
-      
+
       // Fetch viewing user details if viewing someone else
       if (viewingUserId && isAdmin) {
         fetchViewingUserDetails();
@@ -73,7 +73,7 @@ export default function LeavesPage() {
       if (statusFilter !== 'all') {
         params.append('status', statusFilter);
       }
-      
+
       // If viewing another user's leaves (admin only)
       if (viewingUserId && isAdmin) {
         params.append('applicant', viewingUserId);
@@ -81,7 +81,7 @@ export default function LeavesPage() {
         // Otherwise, always filter by current user's leaves
         params.append('applicant', user._id);
       }
-      
+
       const response = await apiClient.get<{ success: boolean; leaves: Leave[] }>(
         `/api/leaves?${params.toString()}`
       );
@@ -99,7 +99,7 @@ export default function LeavesPage() {
       console.error('No user ID provided for fetching leave balance');
       return;
     }
-    
+
     try {
       const response = await apiClient.get<{ success: boolean; user: { annualLeaveBalance: number; name: string; email: string } }>(
         `/api/users/${userId}`
@@ -111,12 +111,12 @@ export default function LeavesPage() {
       setLeaveBalance(15);
     }
   };
-  
+
   const fetchViewingUserDetails = async () => {
     if (!viewingUserId) {
       return;
     }
-    
+
     try {
       const response = await apiClient.get<{ success: boolean; user: { name: string; email: string } }>(
         `/api/users/${viewingUserId}`
@@ -176,7 +176,7 @@ export default function LeavesPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between p-6 bg-linear-to-r from-green-500/10 via-emerald-500/10 to-green-500/10 rounded-2xl border border-green-500/20">
         <div className="flex items-center gap-4">
           {viewingUserId && isAdmin && (
             <Button
@@ -188,21 +188,21 @@ export default function LeavesPage() {
             </Button>
           )}
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            <h1 className="text-4xl font-bold bg-linear-to-r from-green-500 via-emerald-500 to-green-500 bg-clip-text text-transparent">
               {viewingUserId && isAdmin ? 'Leave History' : 'My Leaves'}
             </h1>
-            <p className="text-gray-500 dark:text-gray-400 mt-1">
+            <p className="text-muted-foreground mt-2 text-lg">
               {viewingUserId && isAdmin
-                ? `Leave history for ${viewingUser?.name || 'member'}`
-                : 'Manage your leave applications'}
+                ? `Leave history for ${viewingUser?.name || 'member'} 🏝️`
+                : 'Manage your leave applications 🌴'}
             </p>
           </div>
         </div>
         <div className="flex gap-2">
           {(!viewingUserId || !isAdmin) && (
             <Link href="/dashboard/leaves/new">
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
+              <Button size="lg" className="shadow-lg hover:shadow-xl transition-shadow">
+                <Plus className="mr-2 h-5 w-5" />
                 Apply Leave
               </Button>
             </Link>

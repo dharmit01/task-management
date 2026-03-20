@@ -107,12 +107,12 @@ export default function ProfilePage() {
 
   return (
     <div className="space-y-6 max-w-3xl">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+      <div className="p-6 bg-linear-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 rounded-2xl border border-amber-500/20">
+        <h1 className="text-4xl font-bold bg-linear-to-r from-amber-500 via-orange-500 to-amber-500 bg-clip-text text-transparent">
           Profile & Settings
         </h1>
-        <p className="text-gray-500 dark:text-gray-400 mt-1">
-          Manage your account settings and password
+        <p className="text-muted-foreground mt-2 text-lg">
+          Manage your account settings and password 👤
         </p>
       </div>
 

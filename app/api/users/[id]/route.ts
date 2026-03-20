@@ -6,7 +6,7 @@ import {
   requireManagerOrAdmin,
 } from "@/lib/auth";
 import connectDB from "@/lib/db";
-import { isInTeam } from "@/lib/team-utils";
+import { getTeamMembers, isInTeam } from "@/lib/team-utils";
 import User from "@/models/User";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
@@ -21,7 +21,7 @@ const updateUserSchema = z.object({
     .number()
     .min(0, "Leave balance cannot be negative")
     .optional(),
-  managerId: z.string().optional(),
+  managerId: z.string().nullable().optional(),
 });
 
 const updateLeaveBalanceSchema = z.object({
@@ -66,7 +66,15 @@ export async function GET(
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, user }, { status: 200 });
+    const teamMembers =
+      isAdminUser && user.role === "Manager"
+        ? await getTeamMembers(user._id, { includeInactive: true })
+        : undefined;
+
+    return NextResponse.json(
+      { success: true, user, ...(teamMembers ? { teamMembers } : {}) },
+      { status: 200 },
+    );
   } catch (error) {
     console.error("Get user error:", error);
     return NextResponse.json(
@@ -162,7 +170,7 @@ export async function PATCH(
     if (validationResult.data.managerId !== undefined) {
       if (validationResult.data.managerId === "") {
         // Allow clearing managerId
-        validationResult.data.managerId = null as any;
+        validationResult.data.managerId = null;
       } else {
         const targetRole = validationResult.data.role || targetUser.role;
         if (targetRole !== "Member") {
