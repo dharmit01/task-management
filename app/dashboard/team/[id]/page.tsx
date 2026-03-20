@@ -153,20 +153,22 @@ export default function TeamMemberDetailPage() {
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
                 {member.name}
               </h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{member.email}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">@{member.username}</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
-              <Mail className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-              <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Email</p>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">
-                  {member.email}
-                </p>
+            {member.email && (
+              <div className="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
+                <Mail className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Email</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                    {member.email}
+                  </p>
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
               <User className="h-5 w-5 text-gray-500 dark:text-gray-400" />

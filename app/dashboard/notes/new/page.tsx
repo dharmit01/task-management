@@ -46,16 +46,16 @@ export default function NewNotePage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 p-6 bg-linear-to-r from-purple-500/10 via-pink-500/10 to-purple-500/10 rounded-2xl border border-purple-500/20">
         <Link href="/dashboard/notes">
-          <Button variant="ghost" size="icon">
-            <ArrowLeft className="h-4 w-4" />
+          <Button variant="ghost" size="icon" className="shrink-0">
+            <ArrowLeft className="h-5 w-5" />
           </Button>
         </Link>
         <div>
-          <h1 className="text-3xl font-bold">Create New Note</h1>
-          <p className="text-muted-foreground mt-1">
-            Write a new note with rich text formatting
+          <h1 className="text-4xl font-bold bg-linear-to-r from-purple-500 via-pink-500 to-purple-500 bg-clip-text text-transparent">Create New Note</h1>
+          <p className="text-muted-foreground mt-2 text-lg">
+            Write a new note with rich text formatting ✍️
           </p>
         </div>
       </div>

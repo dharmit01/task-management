@@ -19,10 +19,13 @@ export default function HomePage() {
   }, [isAuthenticated, loading, router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-primary/20 via-background to-accent/20">
       <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 dark:border-white mx-auto"></div>
-        <p className="mt-4 text-gray-600 dark:text-gray-400">Loading...</p>
+        <div className="relative">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-primary/20 border-t-primary mx-auto"></div>
+          <div className="absolute inset-0 animate-ping rounded-full h-16 w-16 border-2 border-primary/40 mx-auto"></div>
+        </div>
+        <p className="mt-6 text-lg font-medium bg-linear-to-r from-primary to-accent bg-clip-text text-transparent">Loading your workspace...</p>
       </div>
     </div>
   );

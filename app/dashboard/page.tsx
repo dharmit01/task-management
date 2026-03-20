@@ -92,8 +92,11 @@ export default function DashboardPage() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 dark:border-white mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading dashboard...</p>
+          <div className="relative">
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-primary/20 border-t-primary mx-auto"></div>
+            <div className="absolute inset-0 animate-ping rounded-full h-16 w-16 border-2 border-primary/40 mx-auto"></div>
+          </div>
+          <p className="mt-6 text-lg font-medium bg-linear-to-r from-primary to-accent bg-clip-text text-transparent">Loading dashboard...</p>
         </div>
       </div>
     );
@@ -102,19 +105,19 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between p-6 bg-linear-to-r from-primary/10 via-accent/10 to-primary/10 rounded-2xl border border-primary/20">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-4xl font-bold bg-linear-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
             Dashboard
           </h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">
-            Welcome back, {user?.name}!
+          <p className="text-muted-foreground mt-2 text-lg">
+            Welcome back, <span className="font-medium text-foreground">{user?.name}</span>! 👋
           </p>
         </div>
         {isAdmin && (
           <Link href="/dashboard/tasks/new">
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
+            <Button size="lg" className="shadow-lg hover:shadow-xl transition-shadow cursor-pointer">
+              <Plus className="mr-2 h-5 w-5" />
               New Task
             </Button>
           </Link>
@@ -123,55 +126,63 @@ export default function DashboardPage() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
+        <Card className="hover-lift border-l-4 border-l-primary">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Tasks</CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <CheckCircle className="h-5 w-5 text-primary" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-3xl font-bold bg-linear-to-r from-primary to-accent bg-clip-text text-transparent">{stats.total}</div>
+            <p className="text-xs text-muted-foreground mt-1">
               {stats.completed} completed
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="hover-lift border-l-4 border-l-blue-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Today&apos;s Tasks</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+            <div className="p-2 bg-blue-500/10 rounded-lg">
+              <Clock className="h-5 w-5 text-blue-500" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.today}</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{stats.today}</div>
+            <p className="text-xs text-muted-foreground mt-1">
               Tasks starting today
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="hover-lift border-l-4 border-l-red-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Overdue</CardTitle>
-            <AlertCircle className="h-4 w-4 text-red-500" />
+            <div className="p-2 bg-red-500/10 rounded-lg">
+              <AlertCircle className="h-5 w-5 text-red-500" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{stats.overdue}</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-3xl font-bold text-red-600 dark:text-red-400">{stats.overdue}</div>
+            <p className="text-xs text-muted-foreground mt-1">
               Require attention
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="hover-lift border-l-4 border-l-orange-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">High Priority</CardTitle>
-            <TrendingUp className="h-4 w-4 text-orange-500" />
+            <div className="p-2 bg-orange-500/10 rounded-lg">
+              <TrendingUp className="h-5 w-5 text-orange-500" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-600">
+            <div className="text-3xl font-bold text-orange-600 dark:text-orange-400">
               {stats.highPriority}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground mt-1">
               High & Critical tasks
             </p>
           </CardContent>
@@ -203,7 +214,7 @@ export default function DashboardPage() {
                         {task.title}
                       </h3>
                       <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                        Assigned to: {Array.isArray(task.assignedTo) 
+                        Assigned to: {Array.isArray(task.assignedTo)
                           ? task.assignedTo.map((a: any) => a.name).join(', ')
                           : task.assignedTo?.name || 'Unassigned'}
                       </p>

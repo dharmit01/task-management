@@ -3,35 +3,35 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-    Command,
-    CommandEmpty,
-    CommandGroup,
-    CommandInput,
-    CommandItem,
-    CommandList,
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
 } from '@/components/ui/command';
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
 } from '@/components/ui/popover';
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/contexts/AuthContext';
@@ -377,7 +377,7 @@ export default function NewTaskPage() {
                             return (
                               <CommandItem
                                 key={member._id}
-                                value={`${member.name} ${member.email}`}
+                                value={`${member.name} ${member.username}`}
                                 onSelect={() => {
                                   const newAssignees = isSelected
                                     ? formData.assignedTo.filter(id => id !== member._id)
@@ -394,7 +394,7 @@ export default function NewTaskPage() {
                                 <div className="flex flex-col">
                                   <span className="font-medium">{member.name}</span>
                                   <span className="text-xs text-muted-foreground">
-                                    {member.email} • {member.role}
+                                    @{member.username} • {member.role}
                                   </span>
                                 </div>
                               </CommandItem>

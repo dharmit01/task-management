@@ -5,13 +5,18 @@ import { Types } from 'mongoose';
 /**
  * Get all team members for a manager
  */
-export async function getTeamMembers(managerId: string | Types.ObjectId) {
+export async function getTeamMembers(
+  managerId: string | Types.ObjectId,
+  options?: { includeInactive?: boolean }
+) {
   const teamMembers = await User.find({
     managerId: managerId,
     role: 'Member',
-    isActive: true,
-  }).select('-password');
-  
+    ...(options?.includeInactive ? {} : { isActive: true }),
+  })
+    .select('-password')
+    .sort({ name: 1 });
+
   return teamMembers;
 }
 

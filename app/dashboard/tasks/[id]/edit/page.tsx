@@ -3,35 +3,35 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-    Command,
-    CommandEmpty,
-    CommandGroup,
-    CommandInput,
-    CommandItem,
-    CommandList,
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
 } from '@/components/ui/command';
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
 } from '@/components/ui/popover';
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/contexts/AuthContext';
@@ -107,30 +107,30 @@ export default function EditTaskPage() {
       setLoading(true);
       const response = await apiClient.get<{ task: Task }>(`/api/tasks/${taskId}`);
       const task = response.task;
-      
+
       // Check if user can edit this task (admin, assignee, or creator)
-      const isAssignee = Array.isArray(task.assignedTo) && 
+      const isAssignee = Array.isArray(task.assignedTo) &&
         task.assignedTo.some((a: any) => (a._id || a) === user?._id);
       const isCreator = (task as any).createdBy?._id === user?._id || (task as any).createdBy === user?._id;
       const hasPermission = isAdmin || isAssignee || isCreator;
-      
+
       if (!hasPermission) {
         toast.error('You do not have permission to edit this task');
         router.push('/dashboard/tasks');
         return;
       }
-      
+
       setCanEdit(true);
-      
+
       // Convert dates to YYYY-MM-DD format for date inputs
       const startDate = new Date(task.startDate).toISOString().split('T')[0];
       const endDate = new Date(task.endDate).toISOString().split('T')[0];
-      
+
       // Extract assignee IDs from the array
-      const assigneeIds = Array.isArray(task.assignedTo) 
+      const assigneeIds = Array.isArray(task.assignedTo)
         ? task.assignedTo.map((a: any) => a._id || a)
         : [];
-      
+
       setFormData({
         title: task.title,
         description: task.description,
@@ -201,7 +201,7 @@ export default function EditTaskPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.assignedTo || formData.assignedTo.length === 0) {
       toast.error('Please assign the task to at least one member');
       return;
@@ -496,7 +496,7 @@ export default function EditTaskPage() {
                           return (
                             <CommandItem
                               key={member._id}
-                              value={`${member.name} ${member.email}`}
+                              value={`${member.name} ${member.username}`}
                               onSelect={() => {
                                 const newAssignees = isSelected
                                   ? formData.assignedTo.filter(id => id !== member._id)
@@ -513,7 +513,7 @@ export default function EditTaskPage() {
                               <div className="flex flex-col">
                                 <span className="font-medium">{member.name}</span>
                                 <span className="text-xs text-muted-foreground">
-                                  {member.email} • {member.role}
+                                  @{member.username} • {member.role}
                                 </span>
                               </div>
                             </CommandItem>

@@ -63,16 +63,14 @@ export default function MyTeamPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <Users className="h-8 w-8" />
-            My Team
-          </h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">
-            Manage your team members and their details
-          </p>
-        </div>
+      <div className="p-6 bg-linear-to-r from-cyan-500/10 via-teal-500/10 to-cyan-500/10 rounded-2xl border border-cyan-500/20">
+        <h1 className="text-4xl font-bold bg-linear-to-r from-cyan-500 via-teal-500 to-cyan-500 bg-clip-text text-transparent flex items-center gap-3">
+          <Users className="h-10 w-10 text-cyan-500" />
+          My Team
+        </h1>
+        <p className="text-muted-foreground mt-2 text-lg">
+          Manage your team members and their details 👨‍👩‍👧‍👦
+        </p>
       </div>
 
       {teamMembers.length === 0 ? (
@@ -113,8 +111,19 @@ export default function MyTeamPage() {
               <CardContent className="space-y-3">
                 <div className="flex items-center gap-2 text-sm">
                   <Mail className="h-4 w-4 text-gray-500" />
-                  <span className="text-gray-700 dark:text-gray-300 truncate">{member.email}</span>
+                  <span className="text-gray-700 dark:text-gray-300 truncate">
+                    @{member.username}
+                  </span>
                 </div>
+
+                {member.email && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Mail className="h-4 w-4 text-gray-500" />
+                    <span className="text-gray-700 dark:text-gray-300 truncate text-xs">
+                      {member.email}
+                    </span>
+                  </div>
+                )}
 
                 <div className="flex items-center gap-2 text-sm">
                   <Calendar className="h-4 w-4 text-gray-500" />
