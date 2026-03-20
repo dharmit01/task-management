@@ -24,10 +24,17 @@ import { toast } from 'sonner';
 interface Member {
   _id: string;
   name: string;
-  email: string;
+  username: string;
+  email?: string;
   role: 'Admin' | 'Member' | 'Manager';
   isActive: boolean;
   annualLeaveBalance: number;
+  managerId?: {
+    _id: string;
+    name: string;
+    username: string;
+    email?: string;
+  } | string;
   createdAt: string;
 }
 
@@ -55,6 +62,7 @@ export default function MemberDetailPage({ params }: { params: Promise<{ id: str
   const { isAdmin } = useAuth();
   const [memberId, setMemberId] = useState<string>('');
   const [member, setMember] = useState<Member | null>(null);
+  const [managers, setManagers] = useState<any[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingLeaveBalance, setEditingLeaveBalance] = useState(false);
@@ -63,9 +71,11 @@ export default function MemberDetailPage({ params }: { params: Promise<{ id: str
   const [editingUserDetails, setEditingUserDetails] = useState(false);
   const [userForm, setUserForm] = useState({
     name: '',
+    username: '',
     email: '',
     role: 'Member' as 'Admin' | 'Member' | 'Manager',
     isActive: true,
+    managerId: '',
   });
 
   useEffect(() => {
@@ -82,6 +92,7 @@ export default function MemberDetailPage({ params }: { params: Promise<{ id: str
     if (memberId) {
       fetchMemberDetails();
       fetchMemberTasks();
+      fetchManagers();
     }
   }, [isAdmin, memberId, router]);
 
@@ -90,14 +101,29 @@ export default function MemberDetailPage({ params }: { params: Promise<{ id: str
       const response = await apiClient.get<any>(`/api/users/${memberId}`);
       setMember(response.user);
       setLeaveBalance(response.user.annualLeaveBalance || 15);
+      const managerIdValue = response.user.managerId?._id || response.user.managerId || '';
       setUserForm({
         name: response.user.name,
-        email: response.user.email,
+        username: response.user.username,
+        email: response.user.email || '',
         role: response.user.role,
         isActive: response.user.isActive,
+        managerId: managerIdValue,
       });
     } catch (error) {
       console.error('Failed to fetch member details:', error);
+    }
+  };
+
+  const fetchManagers = async () => {
+    try {
+      const response = await apiClient.get<any>('/api/users');
+      const managersList = (response.users || []).filter(
+        (user: any) => (user.role === 'Manager' || user.role === 'Admin') && user._id !== memberId
+      );
+      setManagers(managersList);
+    } catch (error) {
+      console.error('Failed to fetch managers:', error);
     }
   };
 
@@ -182,19 +208,25 @@ export default function MemberDetailPage({ params }: { params: Promise<{ id: str
       toast.error('Name is required');
       return;
     }
-    if (!userForm.email.trim()) {
-      toast.error('Email is required');
+    if (!userForm.username.trim()) {
+      toast.error('Username is required');
       return;
     }
 
     try {
       setUpdating(true);
-      await apiClient.patch(`/api/users/${memberId}`, {
+      const payload: any = {
         name: userForm.name,
-        email: userForm.email,
+        username: userForm.username,
+        ...(userForm.email && { email: userForm.email }),
         role: userForm.role,
         isActive: userForm.isActive,
-      });
+      };
+      // Only include managerId if role is Member
+      if (userForm.role === 'Member') {
+        payload.managerId = userForm.managerId || '';
+      }
+      await apiClient.patch(`/api/users/${memberId}`, payload);
       toast.success('User details updated successfully');
       setEditingUserDetails(false);
       fetchMemberDetails();
@@ -276,7 +308,16 @@ export default function MemberDetailPage({ params }: { params: Promise<{ id: str
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="username">Username</Label>
+                    <Input
+                      id="username"
+                      value={userForm.username}
+                      onChange={(e) => setUserForm({ ...userForm, username: e.target.value })}
+                      disabled={updating}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email (Optional)</Label>
                     <Input
                       id="email"
                       type="email"
@@ -289,7 +330,7 @@ export default function MemberDetailPage({ params }: { params: Promise<{ id: str
                     <Label htmlFor="role">Role</Label>
                     <Select
                       value={userForm.role}
-                      onValueChange={(value: 'Admin' | 'Member') => setUserForm({ ...userForm, role: value })}
+                      onValueChange={(value: 'Admin' | 'Member' | 'Manager') => setUserForm({ ...userForm, role: value, managerId: '' })}
                       disabled={updating}
                     >
                       <SelectTrigger>
@@ -297,8 +338,8 @@ export default function MemberDetailPage({ params }: { params: Promise<{ id: str
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="Member">Member</SelectItem>
-                        <SelectItem value="Admin">Admin</SelectItem>
                         <SelectItem value="Manager">Manager</SelectItem>
+                        <SelectItem value="Admin">Admin</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -318,6 +359,28 @@ export default function MemberDetailPage({ params }: { params: Promise<{ id: str
                       </SelectContent>
                     </Select>
                   </div>
+                  {userForm.role === 'Member' && (
+                    <div className="space-y-2 md:col-span-2">
+                      <Label htmlFor="manager-edit">Assign Manager</Label>
+                      <Select
+                        value={userForm.managerId || 'none'}
+                        onValueChange={(value) => setUserForm({ ...userForm, managerId: value === 'none' ? '' : value })}
+                        disabled={updating}
+                      >
+                        <SelectTrigger id="manager-edit">
+                          <SelectValue placeholder="Select a manager (optional)" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">No Manager</SelectItem>
+                          {managers.map((manager) => (
+                            <SelectItem key={manager._id} value={manager._id}>
+                              {manager.name} ({manager.role})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
                 </div>
                 <div className="flex gap-2">
                   <Button
@@ -332,11 +395,16 @@ export default function MemberDetailPage({ params }: { params: Promise<{ id: str
                     variant="outline"
                     onClick={() => {
                       setEditingUserDetails(false);
+                      const managerIdValue = member?.managerId && typeof member.managerId === 'object'
+                        ? member.managerId._id
+                        : (typeof member?.managerId === 'string' ? member.managerId : '');
                       setUserForm({
                         name: member.name,
-                        email: member.email,
+                        username: member.username,
+                        email: member.email || '',
                         role: member.role,
                         isActive: member.isActive,
+                        managerId: managerIdValue,
                       });
                     }}
                     disabled={updating}
@@ -354,18 +422,34 @@ export default function MemberDetailPage({ params }: { params: Promise<{ id: str
                     <p className="font-medium">{member.name}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Email</p>
-                    <p className="font-medium flex items-center gap-1">
-                      <Mail className="h-4 w-4" />
-                      {member.email}
-                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Username</p>
+                    <p className="font-medium">@{member.username}</p>
                   </div>
+                  {member.email && (
+                    <div>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Email</p>
+                      <p className="font-medium flex items-center gap-1">
+                        <Mail className="h-4 w-4" />
+                        {member.email}
+                      </p>
+                    </div>
+                  )}
                   <div>
                     <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Role</p>
                     <Badge variant={member.role === 'Admin' ? 'default' : 'secondary'}>
                       {member.role}
                     </Badge>
                   </div>
+                  {member.role === 'Member' && (
+                    <div>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Manager</p>
+                      <p className="font-medium">
+                        {member.managerId && typeof member.managerId === 'object'
+                          ? member.managerId.name
+                          : 'No Manager Assigned'}
+                      </p>
+                    </div>
+                  )}
                   <div>
                     <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Status</p>
                     <Badge variant={member.isActive ? 'default' : 'destructive'}>
@@ -564,8 +648,8 @@ export default function MemberDetailPage({ params }: { params: Promise<{ id: str
                         </p>
                         <div className="flex flex-wrap gap-2 text-sm text-gray-500 dark:text-gray-400">
                           <div className="flex items-center gap-1">
-                            <div 
-                              className="w-2 h-2 rounded-full" 
+                            <div
+                              className="w-2 h-2 rounded-full"
                               style={{ backgroundColor: task.taskList.color }}
                             />
                             <span>{task.taskList.name}</span>

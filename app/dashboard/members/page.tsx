@@ -31,13 +31,16 @@ export default function MembersPage() {
   const router = useRouter();
   const { isAdmin } = useAuth();
   const [members, setMembers] = useState<any[]>([]);
+  const [managers, setManagers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
+    username: '',
     email: '',
     password: '',
     role: 'Member',
+    managerId: '',
   });
   const [submitting, setSubmitting] = useState(false);
 
@@ -47,6 +50,7 @@ export default function MembersPage() {
       return;
     }
     fetchMembers();
+    fetchManagers();
   }, [isAdmin]);
 
   const fetchMembers = async () => {
@@ -61,15 +65,38 @@ export default function MembersPage() {
     }
   };
 
+  const fetchManagers = async () => {
+    try {
+      const response = await apiClient.get<any>('/api/users');
+      const managersList = (response.users || []).filter(
+        (user: any) => user.role === 'Manager' || user.role === 'Admin'
+      );
+      setManagers(managersList);
+    } catch (error) {
+      console.error('Failed to fetch managers:', error);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
       setSubmitting(true);
-      await apiClient.post('/api/users', formData);
+      // Only include managerId if role is Member and managerId is selected
+      const payload: any = {
+        name: formData.name,
+        username: formData.username,
+        ...(formData.email && { email: formData.email }),
+        password: formData.password,
+        role: formData.role,
+      };
+      if (formData.role === 'Member' && formData.managerId) {
+        payload.managerId = formData.managerId;
+      }
+      await apiClient.post('/api/users', payload);
       alert('Member created successfully!');
       setDialogOpen(false);
-      setFormData({ name: '', email: '', password: '', role: 'Member' });
+      setFormData({ name: '', username: '', email: '', password: '', role: 'Member', managerId: '' });
       fetchMembers();
     } catch (error: any) {
       console.error('Failed to create member:', error);
@@ -133,14 +160,26 @@ export default function MembersPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email *</Label>
+                <Label htmlFor="username">Username *</Label>
+                <Input
+                  id="username"
+                  type="text"
+                  placeholder="johndoe"
+                  value={formData.username}
+                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                  required
+                  disabled={submitting}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email">Email (Optional)</Label>
                 <Input
                   id="email"
                   type="email"
                   placeholder="john@example.com"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  required
                   disabled={submitting}
                 />
               </div>
@@ -163,7 +202,7 @@ export default function MembersPage() {
                 <Label htmlFor="role">Role *</Label>
                 <Select
                   value={formData.role}
-                  onValueChange={(value) => setFormData({ ...formData, role: value })}
+                  onValueChange={(value) => setFormData({ ...formData, role: value, managerId: '' })}
                   disabled={submitting}
                 >
                   <SelectTrigger id="role">
@@ -171,10 +210,34 @@ export default function MembersPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Member">Member</SelectItem>
+                    <SelectItem value="Manager">Manager</SelectItem>
                     <SelectItem value="Admin">Admin</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+
+              {formData.role === 'Member' && (
+                <div className="space-y-2">
+                  <Label htmlFor="manager">Assign Manager</Label>
+                  <Select
+                    value={formData.managerId || 'none'}
+                    onValueChange={(value) => setFormData({ ...formData, managerId: value === 'none' ? '' : value })}
+                    disabled={submitting}
+                  >
+                    <SelectTrigger id="manager">
+                      <SelectValue placeholder="Select a manager (optional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No Manager</SelectItem>
+                      {managers.map((manager) => (
+                        <SelectItem key={manager._id} value={manager._id}>
+                          {manager.name} ({manager.role})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
               <div className="flex gap-4 pt-4">
                 <Button type="submit" disabled={submitting}>
@@ -213,8 +276,13 @@ export default function MembersPage() {
                         {member.name}
                       </CardTitle>
                       <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                        {member.email}
+                        @{member.username}
                       </p>
+                      {member.email && (
+                        <p className="text-xs text-gray-400 dark:text-gray-500">
+                          {member.email}
+                        </p>
+                      )}
                     </div>
                     {member.isActive ? (
                       <UserCheck className="h-5 w-5 text-green-500" />

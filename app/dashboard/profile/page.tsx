@@ -19,10 +19,11 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  
+
   // Edit profile states
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(user?.name || '');
+  const [editUsername, setEditUsername] = useState(user?.username || '');
   const [editEmail, setEditEmail] = useState(user?.email || '');
   const [editLoading, setEditLoading] = useState(false);
 
@@ -62,21 +63,23 @@ export default function ProfilePage() {
 
   const handleEditProfile = () => {
     setEditName(user?.name || '');
+    setEditUsername(user?.username || '');
     setEditEmail(user?.email || '');
     setIsEditing(true);
   };
 
   const handleCancelEdit = () => {
     setEditName(user?.name || '');
+    setEditUsername(user?.username || '');
     setEditEmail(user?.email || '');
     setIsEditing(false);
   };
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!editName.trim() || !editEmail.trim()) {
-      toast.error('Name and email are required');
+
+    if (!editName.trim() || !editUsername.trim()) {
+      toast.error('Name and username are required');
       return;
     }
 
@@ -84,7 +87,8 @@ export default function ProfilePage() {
       setEditLoading(true);
       const response = await apiClient.patch<{ success: boolean; user: any }>('/api/users/profile', {
         name: editName.trim(),
-        email: editEmail.trim(),
+        username: editUsername.trim(),
+        ...(editEmail && { email: editEmail.trim() }),
       });
 
       // Update user in context
@@ -146,14 +150,27 @@ export default function ProfilePage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="editEmail">Email</Label>
+                <Label htmlFor="editUsername">Username</Label>
+                <Input
+                  id="editUsername"
+                  type="text"
+                  placeholder="Enter your username"
+                  value={editUsername}
+                  onChange={(e) => setEditUsername(e.target.value)}
+                  required
+                  minLength={3}
+                  disabled={editLoading}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="editEmail">Email (Optional)</Label>
                 <Input
                   id="editEmail"
                   type="email"
                   placeholder="Enter your email"
                   value={editEmail}
                   onChange={(e) => setEditEmail(e.target.value)}
-                  required
                   disabled={editLoading}
                 />
               </div>
@@ -162,9 +179,9 @@ export default function ProfilePage() {
                 <Button type="submit" disabled={editLoading}>
                   {editLoading ? 'Saving...' : 'Save Changes'}
                 </Button>
-                <Button 
-                  type="button" 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  variant="outline"
                   onClick={handleCancelEdit}
                   disabled={editLoading}
                 >
@@ -186,52 +203,54 @@ export default function ProfilePage() {
                     {user?.name}
                   </h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {user?.email}
+                    @{user?.username}
                   </p>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+                {user?.email && (
+                  <div className="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
+                    <Mail className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                    <div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Email</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                        {user?.email}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
-                  <Mail className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                  <Shield className="h-5 w-5 text-gray-500 dark:text-gray-400" />
                   <div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Email</p>
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">
-                      {user?.email}
-                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Role</p>
+                    <Badge variant={user?.role === 'Admin' ? 'default' : 'secondary'}>
+                      {user?.role}
+                    </Badge>
                   </div>
                 </div>
 
-            <div className="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
-              <Shield className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-              <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Role</p>
-                <Badge variant={user?.role === 'Admin' ? 'default' : 'secondary'}>
-                  {user?.role}
-                </Badge>
-              </div>
-            </div>
+                <div className="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
+                  <Calendar className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                  <div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Status</p>
+                    <Badge variant={user?.isActive ? 'default' : 'destructive'}>
+                      {user?.isActive ? 'Active' : 'Inactive'}
+                    </Badge>
+                  </div>
+                </div>
 
-            <div className="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
-              <Calendar className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-              <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Status</p>
-                <Badge variant={user?.isActive ? 'default' : 'destructive'}>
-                  {user?.isActive ? 'Active' : 'Inactive'}
-                </Badge>
+                <div className="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
+                  <KeyRound className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                  <div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Account ID</p>
+                    <p className="text-sm font-mono text-gray-900 dark:text-white truncate">
+                      {user?._id}
+                    </p>
+                  </div>
+                </div>
               </div>
-            </div>
-
-            <div className="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
-              <KeyRound className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-              <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Account ID</p>
-                <p className="text-sm font-mono text-gray-900 dark:text-white truncate">
-                  {user?._id}
-                </p>
-              </div>
-            </div>
-          </div>
             </>
           )}
         </CardContent>

@@ -8,7 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useState } from 'react';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -20,7 +20,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await login(email, password);
+      await login(username, password);
       // Router push is handled in the login function
     } catch (err: any) {
       setError(err.message || 'Login failed. Please check your credentials.');
@@ -43,13 +43,13 @@ export default function LoginPage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="username">Username</Label>
               <Input
-                id="email"
-                type="email"
-                placeholder="admin@taskmanager.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="username"
+                type="text"
+                placeholder="Enter your username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 required
                 disabled={loading}
               />

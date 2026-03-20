@@ -113,8 +113,19 @@ export default function MyTeamPage() {
               <CardContent className="space-y-3">
                 <div className="flex items-center gap-2 text-sm">
                   <Mail className="h-4 w-4 text-gray-500" />
-                  <span className="text-gray-700 dark:text-gray-300 truncate">{member.email}</span>
+                  <span className="text-gray-700 dark:text-gray-300 truncate">
+                    @{member.username}
+                  </span>
                 </div>
+
+                {member.email && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Mail className="h-4 w-4 text-gray-500" />
+                    <span className="text-gray-700 dark:text-gray-300 truncate text-xs">
+                      {member.email}
+                    </span>
+                  </div>
+                )}
 
                 <div className="flex items-center gap-2 text-sm">
                   <Calendar className="h-4 w-4 text-gray-500" />
