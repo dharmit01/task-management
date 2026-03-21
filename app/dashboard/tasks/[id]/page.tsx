@@ -1,25 +1,25 @@
 'use client';
 
 import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/contexts/AuthContext';
@@ -175,6 +175,11 @@ export default function TaskDetailPage() {
       {/* Task Header */}
       <div className="flex items-start justify-between">
         <div className="flex-1">
+          {task.taskId && (
+            <span className="font-mono text-sm bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700 px-2.5 py-1 rounded inline-block mb-2">
+              {task.taskId}
+            </span>
+          )}
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
             {task.title}
           </h1>
@@ -192,43 +197,43 @@ export default function TaskDetailPage() {
           </div>
         </div>
         {/* Allow edit for admins, assignees, or creator */}
-        {(isAdmin || 
-          task.assignedTo?.some((a: any) => a._id === user?._id) || 
+        {(isAdmin ||
+          task.assignedTo?.some((a: any) => a._id === user?._id) ||
           task.createdBy?._id === user?._id) && (
-          <div className="flex gap-2">
-            <Link href={`/dashboard/tasks/${taskId}/edit`}>
-              <Button>
-                <Pencil className="mr-2 h-4 w-4" />
-                Edit Task
-              </Button>
-            </Link>
-            {isAdmin && (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive" disabled={deleting}>
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Delete
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This action cannot be undone. This will permanently delete the task
-                      and all associated comments.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDeleteTask} className="bg-red-600 hover:bg-red-700">
-                      {deleting ? 'Deleting...' : 'Delete'}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            )}
-          </div>
-        )}
+            <div className="flex gap-2">
+              <Link href={`/dashboard/tasks/${taskId}/edit`}>
+                <Button>
+                  <Pencil className="mr-2 h-4 w-4" />
+                  Edit Task
+                </Button>
+              </Link>
+              {isAdmin && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" disabled={deleting}>
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. This will permanently delete the task
+                        and all associated comments.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleDeleteTask} className="bg-red-600 hover:bg-red-700">
+                        {deleting ? 'Deleting...' : 'Delete'}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
+            </div>
+          )}
       </div>
 
       {/* Task Details */}

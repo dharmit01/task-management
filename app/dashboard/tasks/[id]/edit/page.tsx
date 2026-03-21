@@ -60,6 +60,7 @@ interface TaskList {
 
 interface Task {
   _id: string;
+  taskId?: string;
   title: string;
   description: string;
   startDate: string;
@@ -90,6 +91,7 @@ export default function EditTaskPage() {
   const [openTaskListDialog, setOpenTaskListDialog] = useState(false);
   const [newTaskList, setNewTaskList] = useState({ name: '', description: '', color: '#3b82f6' });
   const [canEdit, setCanEdit] = useState(false);
+  const [taskDisplayId, setTaskDisplayId] = useState<string>('');
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -122,6 +124,7 @@ export default function EditTaskPage() {
       }
 
       setCanEdit(true);
+      if (task.taskId) setTaskDisplayId(task.taskId);
 
       // Convert dates to YYYY-MM-DD format for date inputs
       const startDate = new Date(task.startDate).toISOString().split('T')[0];
@@ -270,7 +273,14 @@ export default function EditTaskPage() {
       <Card>
         <CardHeader>
           <CardTitle>Edit Task</CardTitle>
-          <CardDescription>Update task details, assignees, and other information</CardDescription>
+          <CardDescription>
+            {taskDisplayId && (
+              <span className="font-mono text-xs bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700 px-2 py-0.5 rounded mr-2">
+                {taskDisplayId}
+              </span>
+            )}
+            Update task details, assignees, and other information
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">

@@ -2,7 +2,7 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   Select,
   SelectContent,
@@ -24,6 +24,7 @@ interface TaskList {
 
 interface Task {
   _id: string;
+  taskId: string;
   title: string;
   description: string;
   startDate: string;
@@ -145,107 +146,105 @@ export default function TasksPage() {
       </div>
 
       {/* Filters */}
-      <Card className="border-2 hover-lift">
-        <CardHeader className="bg-linear-to-r from-primary/5 to-accent/5">
-          <CardTitle className="flex items-center gap-2 text-xl">
+      <div className="border-2 hover-lift rounded-lg">
+        <div className="bg-linear-to-r from-primary/5 to-accent/5 p-4 space-y-2">
+          <div className="flex items-center gap-2 text-xl font-bold">
             <div className="p-2 bg-primary/10 rounded-lg">
               <Filter className="h-5 w-5 text-primary" />
             </div>
             Filters
-          </CardTitle>
-          <CardDescription>Filter tasks by various criteria</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <div>
-              <label className="text-sm font-medium mb-2 block">View</label>
-              <Select value={filter} onValueChange={setFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All tasks" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Tasks</SelectItem>
-                  <SelectItem value="today">Today&apos;s Tasks</SelectItem>
-                  <SelectItem value="overdue">Overdue Tasks</SelectItem>
-                  <SelectItem value="high-priority">High Priority</SelectItem>
-                  {isAdmin && <SelectItem value="unassigned">Unassigned Tasks</SelectItem>}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <label className="text-sm font-medium mb-2 block">Task List</label>
-              <Select value={taskListFilter} onValueChange={setTaskListFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All lists" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Lists</SelectItem>
-                  {taskLists.map((list) => (
-                    <SelectItem key={list._id} value={list._id}>
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="w-2 h-2 rounded-full"
-                          style={{ backgroundColor: list.color }}
-                        />
-                        {list.name}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <label className="text-sm font-medium mb-2 block">Status</label>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All statuses" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="ToDo">To Do</SelectItem>
-                  <SelectItem value="In-Progress">In Progress</SelectItem>
-                  <SelectItem value="Blocked">Blocked</SelectItem>
-                  <SelectItem value="In-Review">In Review</SelectItem>
-                  <SelectItem value="Completed">Completed</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <label className="text-sm font-medium mb-2 block">Priority</label>
-              <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All priorities" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Priorities</SelectItem>
-                  <SelectItem value="Low">Low</SelectItem>
-                  <SelectItem value="Medium">Medium</SelectItem>
-                  <SelectItem value="High">High</SelectItem>
-                  <SelectItem value="Critical">Critical</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex items-end">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setFilter('all');
-                  setStatusFilter('all');
-                  setPriorityFilter('all');
-                  setTaskListFilter('all');
-                }}
-                className="w-full"
-              >
-                Clear Filters
-              </Button>
-            </div>
           </div>
-        </CardContent>
-      </Card>
+          <div>Filter tasks by various criteria</div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 p-4">
+          <div>
+            <label className="text-sm font-medium mb-2 block">View</label>
+            <Select value={filter} onValueChange={setFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="All tasks" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Tasks</SelectItem>
+                <SelectItem value="today">Today&apos;s Tasks</SelectItem>
+                <SelectItem value="overdue">Overdue Tasks</SelectItem>
+                <SelectItem value="high-priority">High Priority</SelectItem>
+                {isAdmin && <SelectItem value="unassigned">Unassigned Tasks</SelectItem>}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium mb-2 block">Task List</label>
+            <Select value={taskListFilter} onValueChange={setTaskListFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="All lists" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Lists</SelectItem>
+                {taskLists.map((list) => (
+                  <SelectItem key={list._id} value={list._id}>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-2 h-2 rounded-full"
+                        style={{ backgroundColor: list.color }}
+                      />
+                      {list.name}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium mb-2 block">Status</label>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="All statuses" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="ToDo">To Do</SelectItem>
+                <SelectItem value="In-Progress">In Progress</SelectItem>
+                <SelectItem value="Blocked">Blocked</SelectItem>
+                <SelectItem value="In-Review">In Review</SelectItem>
+                <SelectItem value="Completed">Completed</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium mb-2 block">Priority</label>
+            <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="All priorities" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Priorities</SelectItem>
+                <SelectItem value="Low">Low</SelectItem>
+                <SelectItem value="Medium">Medium</SelectItem>
+                <SelectItem value="High">High</SelectItem>
+                <SelectItem value="Critical">Critical</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-end">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setFilter('all');
+                setStatusFilter('all');
+                setPriorityFilter('all');
+                setTaskListFilter('all');
+              }}
+              className="w-full"
+            >
+              Clear Filters
+            </Button>
+          </div>
+        </div>
+      </div>
 
       {/* Tasks List */}
       <div className="space-y-4">
@@ -267,7 +266,7 @@ export default function TasksPage() {
         ) : (
           <div className="grid gap-4">
             {tasks.map((task) => (
-              <Link key={task._id} href={`/dashboard/tasks/${task._id}`}>
+              <Link key={task._id} href={`/dashboard/tasks/${task.taskId || task._id}`}>
                 <Card className="hover:shadow-md transition-all duration-200 border-l-4 hover:border-l-primary" style={{ borderLeftColor: task.taskList?.color || '#3b82f6' }}>
                   <CardContent>
                     <div className="flex items-start justify-between gap-4">
@@ -279,6 +278,11 @@ export default function TasksPage() {
                               {task.title}
                             </h3>
                             <div className="flex flex-wrap gap-2">
+                              {task.taskId && (
+                                <span className="font-mono text-xs bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700 px-2 py-0.5 rounded">
+                                  {task.taskId}
+                                </span>
+                              )}
                               <Badge className={getStatusColor(task.status)}>
                                 {task.status}
                               </Badge>
