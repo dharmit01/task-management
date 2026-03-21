@@ -3,6 +3,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -10,11 +11,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiClient } from '@/lib/api-client';
-import { CalendarDays, Filter, ListTodo, Plus, User2 } from 'lucide-react';
+import { CalendarDays, Columns2, Filter, LayoutGrid, List, ListTodo, Plus, Search, User2 } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 interface TaskList {
   _id: string;
@@ -37,6 +46,245 @@ interface Task {
   }[];
 }
 
+type ViewMode = 'card' | 'table' | 'board';
+
+const STATUSES: { key: string; label: string }[] = [
+  { key: 'ToDo', label: 'To Do' },
+  { key: 'In-Progress', label: 'In Progress' },
+  { key: 'Blocked', label: 'Blocked' },
+  { key: 'In-Review', label: 'In Review' },
+  { key: 'Completed', label: 'Completed' },
+];
+
+function getPriorityColor(priority: string) {
+  switch (priority) {
+    case 'Critical':
+      return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 border-red-200 dark:border-red-800';
+    case 'High':
+      return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200 border-orange-200 dark:border-orange-800';
+    case 'Medium':
+      return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 border-yellow-200 dark:border-yellow-800';
+    case 'Low':
+      return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 border-green-200 dark:border-green-800';
+    default:
+      return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+  }
+}
+
+function getStatusColor(status: string) {
+  switch (status) {
+    case 'Completed':
+      return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+    case 'In-Progress':
+      return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+    case 'Blocked':
+      return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+    case 'In-Review':
+      return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
+    default:
+      return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+  }
+}
+
+function isTaskOverdue(endDate: string, status: string) {
+  return new Date(endDate) < new Date() && status !== 'Completed';
+}
+
+// ── Card View ──────────────────────────────────────────────────────────────────
+function TaskCardView({ tasks }: { tasks: Task[] }) {
+  return (
+    <div className="grid gap-4">
+      {tasks.map((task) => (
+        <Link key={task._id} href={`/dashboard/tasks/${task._id}`}>
+          <Card
+            className="hover:shadow-md transition-all duration-200 border-l-4 hover:border-l-primary"
+            style={{ borderLeftColor: task.taskList?.color || '#3b82f6' }}
+          >
+            <CardContent>
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1 space-y-3">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                        {task.title}
+                      </h3>
+                      <div className="flex flex-wrap gap-2">
+                        <Badge className={getStatusColor(task.status)}>{task.status}</Badge>
+                        <Badge className={getPriorityColor(task.priority)} variant="outline">
+                          {task.priority}
+                        </Badge>
+                        {isTaskOverdue(task.endDate, task.status) && (
+                          <Badge variant="destructive" className="text-xs">Overdue</Badge>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-gray-600 dark:text-gray-300 line-clamp-2">{task.description}</p>
+                  <div className="flex flex-wrap gap-4 text-sm text-gray-500 dark:text-gray-400">
+                    <div className="flex items-center gap-1.5">
+                      <ListTodo className="h-4 w-4" style={{ color: task.taskList?.color }} />
+                      <span className="font-medium">{task.taskList?.name || 'No List'}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <User2 className="h-4 w-4" />
+                      <span>
+                        {task.assignedTo && task.assignedTo.length > 0
+                          ? task.assignedTo.map((a) => a.name).join(', ')
+                          : 'Unassigned'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <CalendarDays className="h-4 w-4" />
+                      <span>
+                        {new Date(task.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        {' – '}
+                        {new Date(task.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
+      ))}
+    </div>
+  );
+}
+
+// ── Table View ─────────────────────────────────────────────────────────────────
+function TaskTableView({ tasks }: { tasks: Task[] }) {
+  return (
+    <Card>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-[30%]">Title</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Priority</TableHead>
+            <TableHead>Task List</TableHead>
+            <TableHead>Assignees</TableHead>
+            <TableHead>Due Date</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {tasks.map((task) => (
+            <TableRow key={task._id} className="cursor-pointer hover:bg-muted/50">
+              <TableCell>
+                <Link href={`/dashboard/tasks/${task._id}`} className="block">
+                  <span className="font-medium hover:underline line-clamp-1">{task.title}</span>
+                  {isTaskOverdue(task.endDate, task.status) && (
+                    <Badge variant="destructive" className="text-xs mt-1">Overdue</Badge>
+                  )}
+                </Link>
+              </TableCell>
+              <TableCell>
+                <Badge className={getStatusColor(task.status)}>{task.status}</Badge>
+              </TableCell>
+              <TableCell>
+                <Badge className={getPriorityColor(task.priority)} variant="outline">
+                  {task.priority}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                <div className="flex items-center gap-2 text-sm">
+                  <div
+                    className="w-2 h-2 rounded-full shrink-0"
+                    style={{ backgroundColor: task.taskList?.color || '#3b82f6' }}
+                  />
+                  {task.taskList?.name || 'No List'}
+                </div>
+              </TableCell>
+              <TableCell className="text-sm text-muted-foreground">
+                {task.assignedTo && task.assignedTo.length > 0
+                  ? task.assignedTo.map((a) => a.name).join(', ')
+                  : 'Unassigned'}
+              </TableCell>
+              <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
+                {new Date(task.endDate).toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                })}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </Card>
+  );
+}
+
+// ── Board View ─────────────────────────────────────────────────────────────────
+function TaskBoardView({ tasks }: { tasks: Task[] }) {
+  const tasksByStatus = STATUSES.reduce<Record<string, Task[]>>((acc, { key }) => {
+    acc[key] = tasks.filter((t) => t.status === key);
+    return acc;
+  }, {});
+
+  return (
+    <div className="flex gap-4 overflow-x-auto pb-4 min-h-100">
+      {STATUSES.map(({ key, label }) => (
+        <div key={key} className="shrink-0 w-72">
+          <div className="flex items-center justify-between mb-3 px-3 py-2 bg-card rounded-lg border">
+            <span className="font-semibold text-sm">{label}</span>
+            <Badge variant="secondary">{tasksByStatus[key].length}</Badge>
+          </div>
+          <div className="space-y-2">
+            {tasksByStatus[key].map((task) => (
+              <Link key={task._id} href={`/dashboard/tasks/${task._id}`}>
+                <Card
+                  className="hover:shadow-md transition-all border-l-4 cursor-pointer"
+                  style={{ borderLeftColor: task.taskList?.color || '#3b82f6' }}
+                >
+                  <CardContent className="p-3">
+                    <p className="font-medium text-sm mb-2 line-clamp-2">{task.title}</p>
+                    <div className="flex gap-1 flex-wrap mb-2">
+                      <Badge
+                        className={`${getPriorityColor(task.priority)} text-[10px] px-1.5 py-0`}
+                        variant="outline"
+                      >
+                        {task.priority}
+                      </Badge>
+                      {isTaskOverdue(task.endDate, task.status) && (
+                        <Badge variant="destructive" className="text-[10px] px-1.5 py-0">
+                          Overdue
+                        </Badge>
+                      )}
+                    </div>
+                    {task.assignedTo && task.assignedTo.length > 0 && (
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        <User2 className="h-3 w-3 shrink-0" />
+                        <span className="truncate">
+                          {task.assignedTo.map((a) => a.name).join(', ')}
+                        </span>
+                      </p>
+                    )}
+                    <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                      <CalendarDays className="h-3 w-3 shrink-0" />
+                      {new Date(task.endDate).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
+                    </p>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+            {tasksByStatus[key].length === 0 && (
+              <div className="text-center p-6 text-sm text-muted-foreground border-2 border-dashed rounded-lg">
+                No tasks
+              </div>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── Page ───────────────────────────────────────────────────────────────────────
 export default function TasksPage() {
   const { isAdmin } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -46,11 +294,30 @@ export default function TasksPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const [taskListFilter, setTaskListFilter] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [debouncedSearch, setDebouncedSearch] = useState<string>('');
+  const [viewMode, setViewMode] = useState<ViewMode>('card');
+
+  // Restore persisted view preference
+  useEffect(() => {
+    const saved = localStorage.getItem('tasks-view-mode') as ViewMode | null;
+    if (saved && ['card', 'table', 'board'].includes(saved)) setViewMode(saved);
+  }, []);
+
+  const handleViewChange = (mode: ViewMode) => {
+    setViewMode(mode);
+    localStorage.setItem('tasks-view-mode', mode);
+  };
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchQuery), 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   useEffect(() => {
-    fetchTasks();
     fetchTaskLists();
-  }, [filter, statusFilter, priorityFilter, taskListFilter]);
+  }, []);
 
   const fetchTaskLists = async () => {
     try {
@@ -61,23 +328,15 @@ export default function TasksPage() {
     }
   };
 
-  const fetchTasks = async () => {
+  const fetchTasks = useCallback(async () => {
     try {
       setLoading(true);
       const queryParams = new URLSearchParams();
-
-      if (filter !== 'all') {
-        queryParams.append('filter', filter);
-      }
-      if (statusFilter !== 'all') {
-        queryParams.append('status', statusFilter);
-      }
-      if (priorityFilter !== 'all') {
-        queryParams.append('priority', priorityFilter);
-      }
-      if (taskListFilter !== 'all') {
-        queryParams.append('taskList', taskListFilter);
-      }
+      if (filter !== 'all') queryParams.append('filter', filter);
+      if (statusFilter !== 'all') queryParams.append('status', statusFilter);
+      if (priorityFilter !== 'all') queryParams.append('priority', priorityFilter);
+      if (taskListFilter !== 'all') queryParams.append('taskList', taskListFilter);
+      if (debouncedSearch.trim()) queryParams.append('search', debouncedSearch.trim());
 
       const response = await apiClient.get<{ success: boolean; tasks: Task[] }>(
         `/api/tasks?${queryParams.toString()}`
@@ -88,41 +347,11 @@ export default function TasksPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter, statusFilter, priorityFilter, taskListFilter, debouncedSearch]);
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'Critical':
-        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 border-red-200 dark:border-red-800';
-      case 'High':
-        return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200 border-orange-200 dark:border-orange-800';
-      case 'Medium':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 border-yellow-200 dark:border-yellow-800';
-      case 'Low':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 border-green-200 dark:border-green-800';
-      default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Completed':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
-      case 'In-Progress':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-      case 'Blocked':
-        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
-      case 'In-Review':
-        return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
-      default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
-    }
-  };
-
-  const isOverdue = (endDate: string, status: string) => {
-    return new Date(endDate) < new Date() && status !== 'Completed';
-  };
+  useEffect(() => {
+    fetchTasks();
+  }, [fetchTasks]);
 
   return (
     <div className="space-y-6">
@@ -142,6 +371,48 @@ export default function TasksPage() {
             New Task
           </Button>
         </Link>
+      </div>
+
+      {/* Search + View Toggle */}
+      <div className="flex items-center gap-3">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+          <Input
+            placeholder="Search tasks by title or description…"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <div className="flex items-center gap-1 p-1 bg-muted rounded-lg">
+          <Button
+            variant={viewMode === 'card' ? 'default' : 'ghost'}
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => handleViewChange('card')}
+            title="Card View"
+          >
+            <LayoutGrid className="h-4 w-4" />
+          </Button>
+          <Button
+            variant={viewMode === 'table' ? 'default' : 'ghost'}
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => handleViewChange('table')}
+            title="Table View"
+          >
+            <List className="h-4 w-4" />
+          </Button>
+          <Button
+            variant={viewMode === 'board' ? 'default' : 'ghost'}
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => handleViewChange('board')}
+            title="Board View"
+          >
+            <Columns2 className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -184,10 +455,7 @@ export default function TasksPage() {
                   {taskLists.map((list) => (
                     <SelectItem key={list._id} value={list._id}>
                       <div className="flex items-center gap-2">
-                        <div
-                          className="w-2 h-2 rounded-full"
-                          style={{ backgroundColor: list.color }}
-                        />
+                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: list.color }} />
                         {list.name}
                       </div>
                     </SelectItem>
@@ -237,6 +505,7 @@ export default function TasksPage() {
                   setStatusFilter('all');
                   setPriorityFilter('all');
                   setTaskListFilter('all');
+                  setSearchQuery('');
                 }}
                 className="w-full"
               >
@@ -247,88 +516,31 @@ export default function TasksPage() {
         </CardContent>
       </Card>
 
-      {/* Tasks List */}
-      <div className="space-y-4">
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 dark:border-white mx-auto"></div>
-              <p className="mt-4 text-gray-600 dark:text-gray-400">Loading tasks...</p>
-            </div>
+      {/* Tasks Display */}
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 dark:border-white mx-auto" />
+            <p className="mt-4 text-gray-600 dark:text-gray-400">Loading tasks...</p>
           </div>
-        ) : tasks.length === 0 ? (
-          <Card>
-            <CardContent className="py-12">
-              <p className="text-center text-gray-500 dark:text-gray-400">
-                No tasks found. {isAdmin && 'Create your first task to get started!'}
-              </p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid gap-4">
-            {tasks.map((task) => (
-              <Link key={task._id} href={`/dashboard/tasks/${task._id}`}>
-                <Card className="hover:shadow-md transition-all duration-200 border-l-4 hover:border-l-primary" style={{ borderLeftColor: task.taskList?.color || '#3b82f6' }}>
-                  <CardContent>
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1 space-y-3">
-                        {/* Title and Badges */}
-                        <div className="flex items-start gap-3">
-                          <div className="flex-1">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                              {task.title}
-                            </h3>
-                            <div className="flex flex-wrap gap-2">
-                              <Badge className={getStatusColor(task.status)}>
-                                {task.status}
-                              </Badge>
-                              <Badge className={getPriorityColor(task.priority)} variant="outline">
-                                {task.priority}
-                              </Badge>
-                              {isOverdue(task.endDate, task.status) && (
-                                <Badge variant="destructive" className="text-xs">
-                                  Overdue
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Description */}
-                        <p className="text-gray-600 dark:text-gray-300 line-clamp-2">
-                          {task.description}
-                        </p>
-
-                        {/* Meta Information */}
-                        <div className="flex flex-wrap gap-4 text-sm text-gray-500 dark:text-gray-400">
-                          <div className="flex items-center gap-1.5">
-                            <ListTodo className="h-4 w-4" style={{ color: task.taskList?.color }} />
-                            <span className="font-medium">{task.taskList?.name || 'No List'}</span>
-                          </div>
-                          <div className="flex items-center gap-1.5">
-                            <User2 className="h-4 w-4" />
-                            <span>
-                              {task.assignedTo && task.assignedTo.length > 0
-                                ? task.assignedTo.map((a: any) => a.name).join(', ')
-                                : 'Unassigned'}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1.5">
-                            <CalendarDays className="h-4 w-4" />
-                            <span>
-                              {new Date(task.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {new Date(task.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
-        )}
-      </div>
+        </div>
+      ) : tasks.length === 0 ? (
+        <Card>
+          <CardContent className="py-12">
+            <p className="text-center text-gray-500 dark:text-gray-400">
+              {debouncedSearch
+                ? `No tasks found matching "${debouncedSearch}".`
+                : `No tasks found. ${isAdmin ? 'Create your first task to get started!' : ''}`}
+            </p>
+          </CardContent>
+        </Card>
+      ) : viewMode === 'card' ? (
+        <TaskCardView tasks={tasks} />
+      ) : viewMode === 'table' ? (
+        <TaskTableView tasks={tasks} />
+      ) : (
+        <TaskBoardView tasks={tasks} />
+      )}
     </div>
   );
 }
