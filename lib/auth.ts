@@ -1,18 +1,21 @@
-import User, { IUser } from '@/models/User';
-import jwt from 'jsonwebtoken';
-import { NextRequest } from 'next/server';
-import connectDB from './db';
+import User, { IUser } from "@/models/User";
+import jwt from "jsonwebtoken";
+import { NextRequest } from "next/server";
+import connectDB from "./db";
 
 const JWT_SECRET = process.env.JWT_SECRET!;
 
 if (!JWT_SECRET) {
-  throw new Error('Please define the JWT_SECRET environment variable inside .env.local');
+  throw new Error(
+    "Please define the JWT_SECRET environment variable inside .env.local",
+  );
 }
 
 export interface JWTPayload {
   userId: string;
-  email: string;
-  role: 'Admin' | 'Manager' | 'Member';
+  username: string;
+  email?: string;
+  role: "Admin" | "Manager" | "Member";
 }
 
 export interface AuthenticatedRequest extends NextRequest {
@@ -36,39 +39,39 @@ export function verifyToken(token: string): JWTPayload | null {
  * Generate JWT token
  */
 export function generateToken(payload: JWTPayload): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
 }
 
 /**
  * Extract and verify token from request headers
  */
 export async function authenticateRequest(
-  request: NextRequest
+  request: NextRequest,
 ): Promise<{ user: IUser | null; error: string | null }> {
   try {
-    const authHeader = request.headers.get('authorization');
+    const authHeader = request.headers.get("authorization");
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return { user: null, error: 'No token provided' };
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return { user: null, error: "No token provided" };
     }
 
     const token = authHeader.substring(7);
     const decoded = verifyToken(token);
 
     if (!decoded) {
-      return { user: null, error: 'Invalid or expired token' };
+      return { user: null, error: "Invalid or expired token" };
     }
 
     await connectDB();
-    const user = await User.findById(decoded.userId).select('-password');
+    const user = await User.findById(decoded.userId).select("-password");
 
     if (!user || !user.isActive) {
-      return { user: null, error: 'User not found or inactive' };
+      return { user: null, error: "User not found or inactive" };
     }
 
     return { user, error: null };
   } catch (error) {
-    return { user: null, error: 'Authentication failed' };
+    return { user: null, error: "Authentication failed" };
   }
 }
 
@@ -76,21 +79,21 @@ export async function authenticateRequest(
  * Check if user has admin role
  */
 export function isAdmin(user: IUser | null): boolean {
-  return user?.role === 'Admin';
+  return user?.role === "Admin";
 }
 
 /**
  * Check if user has manager role
  */
 export function isManager(user: IUser | null): boolean {
-  return user?.role === 'Manager';
+  return user?.role === "Manager";
 }
 
 /**
  * Check if user has admin or manager role
  */
 export function isManagerOrAdmin(user: IUser | null): boolean {
-  return user?.role === 'Admin' || user?.role === 'Manager';
+  return user?.role === "Admin" || user?.role === "Manager";
 }
 
 /**
@@ -98,14 +101,14 @@ export function isManagerOrAdmin(user: IUser | null): boolean {
  */
 export async function requireAuth(request: NextRequest) {
   const { user, error } = await authenticateRequest(request);
-  
+
   if (error || !user) {
     return {
       authenticated: false as const,
       user: null,
       response: Response.json(
-        { error: error || 'Authentication required' },
-        { status: 401 }
+        { error: error || "Authentication required" },
+        { status: 401 },
       ),
     };
   }
@@ -118,7 +121,7 @@ export async function requireAuth(request: NextRequest) {
  */
 export async function requireAdmin(request: NextRequest) {
   const authResult = await requireAuth(request);
-  
+
   if (!authResult.authenticated) {
     return authResult;
   }
@@ -128,8 +131,8 @@ export async function requireAdmin(request: NextRequest) {
       authenticated: false as const,
       user: null,
       response: Response.json(
-        { error: 'Admin access required' },
-        { status: 403 }
+        { error: "Admin access required" },
+        { status: 403 },
       ),
     };
   }
@@ -142,7 +145,7 @@ export async function requireAdmin(request: NextRequest) {
  */
 export async function requireManagerOrAdmin(request: NextRequest) {
   const authResult = await requireAuth(request);
-  
+
   if (!authResult.authenticated) {
     return authResult;
   }
@@ -152,8 +155,8 @@ export async function requireManagerOrAdmin(request: NextRequest) {
       authenticated: false as const,
       user: null,
       response: Response.json(
-        { error: 'Manager or Admin access required' },
-        { status: 403 }
+        { error: "Manager or Admin access required" },
+        { status: 403 },
       ),
     };
   }
