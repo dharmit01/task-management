@@ -15,6 +15,7 @@ interface TeamMember {
   _id: string;
   name: string;
   email: string;
+  username: string;
   isActive: boolean;
   annualLeaveBalance: number;
   role: string;

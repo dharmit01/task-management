@@ -6,6 +6,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Table,
   TableBody,
   TableCell,
@@ -13,13 +20,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiClient } from '@/lib/api-client';
 import dayjs from "dayjs";
@@ -153,7 +153,7 @@ export default function MemberDetailPage({ params }: { params: Promise<{ id: str
       setMember(response.user);
       setTeamMembers(response.teamMembers || []);
       setLeaveBalance(response.user.annualLeaveBalance || 15);
-      const managerIdValue = response.user.managerId?._id || response.user.managerId || '';
+      const managerIdValue = (typeof response.user.managerId === 'object' ? response.user.managerId?._id : response.user.managerId) || '';
       setUserForm({
         name: response.user.name,
         username: response.user.username,

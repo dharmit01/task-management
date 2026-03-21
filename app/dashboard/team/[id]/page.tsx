@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 interface TeamMemberDetail {
   _id: string;
   name: string;
+  username: string;
   email: string;
   role: string;
   isActive: boolean;
