@@ -1,5 +1,6 @@
 'use client';
 
+import { GlobalSearch } from '@/components/GlobalSearch';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
@@ -68,6 +69,8 @@ export default function DashboardLayout({
             {user?.role}
           </p>
         </div>
+
+        <GlobalSearch />
 
         <nav className="space-y-4">
           <Link href="/dashboard" className="cursor-pointer">

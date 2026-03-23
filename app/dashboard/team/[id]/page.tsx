@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiClient } from '@/lib/api-client';
-import { ArrowLeft, Calendar, Mail, Save, User, X } from 'lucide-react';
+import { ArrowLeft, Calendar, KeyRound, Mail, Save, User, X } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
@@ -33,6 +33,9 @@ export default function TeamMemberDetailPage() {
   const [isEditingBalance, setIsEditingBalance] = useState(false);
   const [editBalance, setEditBalance] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({ newPassword: '', confirmPassword: '' });
+  const [savingPassword, setSavingPassword] = useState(false);
 
   const memberId = params?.id as string;
 
@@ -95,6 +98,34 @@ export default function TeamMemberDetailPage() {
       toast.error(errorMessage);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleSavePassword = async () => {
+    if (passwordForm.newPassword.length < 6) {
+      toast.error('New password must be at least 6 characters');
+      return;
+    }
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      toast.error("Passwords don't match");
+      return;
+    }
+
+    try {
+      setSavingPassword(true);
+      await apiClient.post(`/api/users/${memberId}/change-password`, {
+        newPassword: passwordForm.newPassword,
+        confirmPassword: passwordForm.confirmPassword,
+      });
+      toast.success('Password changed successfully');
+      setIsChangingPassword(false);
+      setPasswordForm({ newPassword: '', confirmPassword: '' });
+    } catch (error: unknown) {
+      console.error('Failed to change password:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to change password';
+      toast.error(errorMessage);
+    } finally {
+      setSavingPassword(false);
     }
   };
 
@@ -254,6 +285,78 @@ export default function TeamMemberDetailPage() {
             </div>
           )}
         </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Change Password</CardTitle>
+              <CardDescription>Set a new password for {member.name}</CardDescription>
+            </div>
+            {!isChangingPassword && (
+              <Button
+                onClick={() => {
+                  setPasswordForm({ newPassword: '', confirmPassword: '' });
+                  setIsChangingPassword(true);
+                }}
+                variant="outline"
+                size="sm"
+              >
+                <KeyRound className="h-4 w-4 mr-2" />
+                Change Password
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+        {isChangingPassword && (
+          <CardContent>
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="newPassword">New Password</Label>
+                  <Input
+                    id="newPassword"
+                    type="password"
+                    placeholder="At least 6 characters"
+                    value={passwordForm.newPassword}
+                    onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                    disabled={savingPassword}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirmNewPassword">Confirm New Password</Label>
+                  <Input
+                    id="confirmNewPassword"
+                    type="password"
+                    placeholder="Repeat new password"
+                    value={passwordForm.confirmPassword}
+                    onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                    disabled={savingPassword}
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <Button onClick={handleSavePassword} disabled={savingPassword}>
+                  <Save className="h-4 w-4 mr-2" />
+                  {savingPassword ? 'Saving...' : 'Save Password'}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsChangingPassword(false);
+                    setPasswordForm({ newPassword: '', confirmPassword: '' });
+                  }}
+                  disabled={savingPassword}
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        )}
       </Card>
     </div>
   );

@@ -23,7 +23,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { apiClient } from '@/lib/api-client';
 import dayjs from "dayjs";
-import { ArrowLeft, Calendar, Edit, Mail, Save, UserCheck, UserX, Users } from 'lucide-react';
+import { ArrowLeft, Calendar, Edit, KeyRound, Mail, Save, UserCheck, UserX, Users } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -120,6 +120,8 @@ export default function MemberDetailPage({ params }: { params: Promise<{ id: str
   const [leaveBalance, setLeaveBalance] = useState<number>(15);
   const [updating, setUpdating] = useState(false);
   const [editingUserDetails, setEditingUserDetails] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({ newPassword: '', confirmPassword: '' });
   const [userForm, setUserForm] = useState({
     name: '',
     username: '',
@@ -257,6 +259,33 @@ export default function MemberDetailPage({ params }: { params: Promise<{ id: str
     } catch (error) {
       console.error('Failed to update leave balance:', error);
       toast.error('Failed to update leave balance');
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (passwordForm.newPassword.length < 6) {
+      toast.error('New password must be at least 6 characters');
+      return;
+    }
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      toast.error("Passwords don't match");
+      return;
+    }
+
+    try {
+      setUpdating(true);
+      await apiClient.post(`/api/users/${memberId}/change-password`, {
+        newPassword: passwordForm.newPassword,
+        confirmPassword: passwordForm.confirmPassword,
+      });
+      toast.success('Password changed successfully');
+      setChangingPassword(false);
+      setPasswordForm({ newPassword: '', confirmPassword: '' });
+    } catch (error) {
+      console.error('Failed to change password:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to change password');
     } finally {
       setUpdating(false);
     }
@@ -615,6 +644,80 @@ export default function MemberDetailPage({ params }: { params: Promise<{ id: str
               </div>
             )}
           </CardContent>
+        </Card>
+      )}
+
+      {/* Change Password */}
+      {member && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Change Password</CardTitle>
+                <CardDescription>Set a new password for {member.name}</CardDescription>
+              </div>
+              {!changingPassword && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setPasswordForm({ newPassword: '', confirmPassword: '' });
+                    setChangingPassword(true);
+                  }}
+                >
+                  <KeyRound className="h-4 w-4 mr-2" />
+                  Change Password
+                </Button>
+              )}
+            </div>
+          </CardHeader>
+          {changingPassword && (
+            <CardContent>
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="newPassword">New Password</Label>
+                    <Input
+                      id="newPassword"
+                      type="password"
+                      value={passwordForm.newPassword}
+                      onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                      disabled={updating}
+                      placeholder="At least 6 characters"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmNewPassword">Confirm New Password</Label>
+                    <Input
+                      id="confirmNewPassword"
+                      type="password"
+                      value={passwordForm.confirmPassword}
+                      onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                      disabled={updating}
+                      placeholder="Repeat new password"
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button onClick={handleChangePassword} disabled={updating} size="sm">
+                    <Save className="h-4 w-4 mr-2" />
+                    {updating ? 'Saving...' : 'Save Password'}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={updating}
+                    onClick={() => {
+                      setChangingPassword(false);
+                      setPasswordForm({ newPassword: '', confirmPassword: '' });
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          )}
         </Card>
       )}
 

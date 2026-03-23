@@ -118,6 +118,28 @@ export async function GET(request: NextRequest) {
       query.priority = { $in: ["High", "Critical"] };
     }
 
+    // Search by title or description (case-insensitive, escaped to prevent ReDoS)
+    const search = searchParams.get("search");
+    if (search && search.trim()) {
+      const escapedSearch = search
+        .trim()
+        .replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const searchOr: Record<string, unknown>[] = [
+        { title: { $regex: escapedSearch, $options: "i" } },
+        { description: { $regex: escapedSearch, $options: "i" } },
+      ];
+      if (query.$or) {
+        // Combine existing role-based $or with search $or via $and
+        query.$and = [
+          { $or: query.$or as Record<string, unknown>[] },
+          { $or: searchOr },
+        ];
+        delete query.$or;
+      } else {
+        query.$or = searchOr;
+      }
+    }
+
     const tasks = await Task.find(query)
       .populate("assignedTo", "name email")
       .populate("createdBy", "name email")
