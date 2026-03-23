@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/table';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiClient } from '@/lib/api-client';
-import { Plus, Search, Shield, UserCheck, Users, UserX } from 'lucide-react';
+import { Plus, RefreshCw, Search, Shield, UserCheck, Users, UserX } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
@@ -187,7 +187,7 @@ export default function MembersPage() {
       <div className="flex items-center justify-between p-6 bg-linear-to-r from-indigo-500/10 via-violet-500/10 to-indigo-500/10 rounded-2xl border border-indigo-500/20">
         <div>
           <h1 className="text-4xl font-bold bg-linear-to-r from-indigo-500 via-violet-500 to-indigo-500 bg-clip-text text-transparent">Members</h1>
-          <p className="text-muted-foreground mt-2 text-lg">Manage team members and their access 👥</p>
+          <p className="text-muted-foreground mt-2 text-lg">Manage team members and their access</p>
         </div>
 
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -388,6 +388,16 @@ export default function MembersPage() {
             <SelectItem value="inactive">Inactive</SelectItem>
           </SelectContent>
         </Select>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={fetchMembers}
+          disabled={loading}
+          title="Refresh members"
+          className='cursor-pointer'
+        >
+          <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+        </Button>
       </div>
 
       {/* Table */}

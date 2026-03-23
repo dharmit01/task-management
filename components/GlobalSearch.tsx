@@ -7,7 +7,7 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
-  CommandList,
+  CommandList
 } from '@/components/ui/command';
 import { apiClient } from '@/lib/api-client';
 import { Search } from 'lucide-react';
@@ -139,7 +139,7 @@ export function GlobalSearch() {
                   key={task._id}
                   value={task._id}
                   onSelect={() => handleSelect(task._id)}
-                  className="flex flex-col items-start gap-1 py-3 cursor-pointer"
+                  className="flex flex-col items-start gap-1 cursor-pointer"
                 >
                   <div className="flex w-full items-center gap-2">
                     <span className="flex-1 font-medium text-sm truncate">{task.title}</span>
