@@ -14,7 +14,7 @@ const createUserSchema = z.object({
   managerId: z.string().optional(),
 });
 
-// GET /api/users - List all users (Admin only)
+// GET /api/users - List users with server-side filtering, sorting, and pagination (Admin only)
 export async function GET(request: NextRequest) {
   const authResult = await requireAdmin(request);
   if (!authResult.authenticated) {
@@ -24,11 +24,101 @@ export async function GET(request: NextRequest) {
   try {
     await connectDB();
 
-    const users = await User.find({})
-      .select("-password")
-      .sort({ createdAt: -1 });
+    const { searchParams } = new URL(request.url);
 
-    return NextResponse.json({ success: true, users }, { status: 200 });
+    const search = searchParams.get("search")?.trim() ?? "";
+    const role = searchParams.get("role") ?? "all";
+    const status = searchParams.get("status") ?? "all";
+    const sortDir = searchParams.get("sortDir") === "desc" ? -1 : 1;
+    const all = searchParams.get("all") === "true";
+
+    const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10));
+    const pageSize = Math.min(
+      100,
+      Math.max(1, parseInt(searchParams.get("pageSize") ?? "10", 10)),
+    );
+
+    // Build query object
+    const query: Record<string, unknown> = {};
+
+    if (search) {
+      const regex = new RegExp(
+        search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+        "i",
+      );
+      query.$or = [{ name: regex }, { username: regex }, { email: regex }];
+    }
+
+    const validRoles = ["Admin", "Manager", "Member"] as const;
+    type ValidRole = (typeof validRoles)[number];
+    if (role !== "all" && validRoles.includes(role as ValidRole)) {
+      query.role = role;
+    }
+
+    if (status === "active") query.isActive = true;
+    else if (status === "inactive") query.isActive = false;
+
+    // Compute stats from the unfiltered collection (not filtered query)
+    const [statsResult, total] = await Promise.all([
+      User.aggregate([
+        {
+          $group: {
+            _id: null,
+            total: { $sum: 1 },
+            active: { $sum: { $cond: ["$isActive", 1, 0] } },
+            managers: {
+              $sum: { $cond: [{ $eq: ["$role", "Manager"] }, 1, 0] },
+            },
+            members: {
+              $sum: { $cond: [{ $eq: ["$role", "Member"] }, 1, 0] },
+            },
+          },
+        },
+      ]),
+      User.countDocuments(query),
+    ]);
+
+    const stats = statsResult[0]
+      ? {
+          total: statsResult[0].total as number,
+          active: statsResult[0].active as number,
+          managers: statsResult[0].managers as number,
+          members: statsResult[0].members as number,
+        }
+      : { total: 0, active: 0, managers: 0, members: 0 };
+
+    const usersQuery = User.find(query)
+      .select("-password")
+      .sort({ name: sortDir, _id: 1 });
+
+    let users;
+    let pagination;
+
+    if (all) {
+      users = await usersQuery.lean();
+      pagination = {
+        total,
+        page: 1,
+        pageSize: total,
+        totalPages: 1,
+      };
+    } else {
+      users = await usersQuery
+        .skip((page - 1) * pageSize)
+        .limit(pageSize)
+        .lean();
+      pagination = {
+        total,
+        page,
+        pageSize,
+        totalPages: Math.max(1, Math.ceil(total / pageSize)),
+      };
+    }
+
+    return NextResponse.json(
+      { success: true, users, pagination, stats },
+      { status: 200 },
+    );
   } catch (error) {
     console.error("Get users error:", error);
     return NextResponse.json(
