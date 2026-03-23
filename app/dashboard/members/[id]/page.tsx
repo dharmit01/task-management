@@ -153,6 +153,7 @@ export default function MemberDetailPage({ params }: { params: Promise<{ id: str
     try {
       const response = await apiClient.get<MemberDetailResponse>(`/api/users/${memberId}`);
       setMember(response.user);
+      console.log(response.user);
       setTeamMembers(response.teamMembers || []);
       setLeaveBalance(response.user.annualLeaveBalance || 15);
       const managerIdValue = (typeof response.user.managerId === 'object' ? response.user.managerId?._id : response.user.managerId) || '';
@@ -840,7 +841,7 @@ export default function MemberDetailPage({ params }: { params: Promise<{ id: str
         </CardContent>
       </Card>
 
-      {member?.role === 'Manager' && (
+      {member?.role && ['Manager', 'Admin'].includes(member.role) && (
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between gap-3">

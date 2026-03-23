@@ -3,7 +3,16 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
 import { Input } from '@/components/ui/input';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Select,
   SelectContent,
@@ -21,7 +30,7 @@ import {
 } from '@/components/ui/table';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiClient } from '@/lib/api-client';
-import { CalendarDays, Columns2, Filter, LayoutGrid, List, ListTodo, Plus, Search, User2 } from 'lucide-react';
+import { CalendarDays, ChevronsUpDown, Columns2, Filter, LayoutGrid, List, ListTodo, Plus, Search, User2 } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 
@@ -164,7 +173,7 @@ function TaskTableView({ tasks }: { tasks: Task[] }) {
             <TableHead className="w-[30%]">Title</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Priority</TableHead>
-            <TableHead>Task List</TableHead>
+            <TableHead>Company Name</TableHead>
             <TableHead>Assignees</TableHead>
             <TableHead>Due Date</TableHead>
           </TableRow>
@@ -241,12 +250,12 @@ function TaskBoardView({ tasks }: { tasks: Task[] }) {
             {tasksByStatus[key].map((task) => (
               <Link key={task._id} href={`/dashboard/tasks/${task._id}`}>
                 <Card
-                  className="hover:shadow-md transition-all border-l-4 cursor-pointer"
+                  className="hover:shadow-md transition-all border-l-4 cursor-pointer mb-4"
                   style={{ borderLeftColor: task.taskList?.color || '#3b82f6' }}
                 >
-                  <CardContent className="p-3">
+                  <CardContent className="px-3 space-y-2">
                     <p className="font-medium text-sm mb-2 line-clamp-2">{task.title}</p>
-                    <div className="flex gap-1 flex-wrap mb-2">
+                    <div className="flex gap-2 flex-wrap mb-2">
                       <Badge
                         className={`${getPriorityColor(task.priority)} text-[10px] px-1.5 py-0`}
                         variant="outline"
@@ -260,21 +269,27 @@ function TaskBoardView({ tasks }: { tasks: Task[] }) {
                       )}
                     </div>
                     {task.assignedTo && task.assignedTo.length > 0 && (
-                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <div className="text-xs text-muted-foreground flex items-center gap-2">
                         <User2 className="h-3 w-3 shrink-0" />
                         <span className="truncate">
                           {task.assignedTo.map((a) => a.name).join(', ')}
                         </span>
-                      </p>
+                      </div>
                     )}
-                    <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                    <div className="text-xs text-muted-foreground mt-1 flex items-center gap-2">
                       <CalendarDays className="h-3 w-3 shrink-0" />
                       {new Date(task.endDate).toLocaleDateString('en-US', {
                         month: 'short',
                         day: 'numeric',
                         year: 'numeric',
                       })}
-                    </p>
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1 flex items-center gap-2">
+                      <div className="flex items-center gap-1.5">
+                        <ListTodo className="h-4 w-4" style={{ color: task.taskList?.color }} />
+                        <span className="font-medium">{task.taskList?.name || 'No List'}</span>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               </Link>
@@ -304,6 +319,7 @@ export default function TasksPage() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [debouncedSearch, setDebouncedSearch] = useState<string>('');
   const [viewMode, setViewMode] = useState<ViewMode>('card');
+  const [companyComboOpen, setCompanyComboOpen] = useState(false);
 
   // Restore persisted view preference
   useEffect(() => {
@@ -331,7 +347,7 @@ export default function TasksPage() {
       const response = await apiClient.get<{ success: boolean; taskLists: TaskList[] }>('/api/task-lists');
       setTaskLists(response.taskLists || []);
     } catch (error) {
-      console.error('Failed to fetch task lists:', error);
+      console.error('Failed to fetch company lists:', error);
     }
   };
 
@@ -395,7 +411,7 @@ export default function TasksPage() {
           <Button
             variant={viewMode === 'card' ? 'default' : 'ghost'}
             size="icon"
-            className="h-8 w-8 hover:bg-indigo-200 hover:text-black"
+            className="h-8 w-8 hover:bg-indigo-200 hover:text-black cursor-pointer"
             onClick={() => handleViewChange('card')}
             title="Card View"
           >
@@ -404,7 +420,7 @@ export default function TasksPage() {
           <Button
             variant={viewMode === 'table' ? 'default' : 'ghost'}
             size="icon"
-            className="h-8 w-8 hover:bg-indigo-200 hover:text-black"
+            className="h-8 w-8 hover:bg-indigo-200 hover:text-black cursor-pointer"
             onClick={() => handleViewChange('table')}
             title="Table View"
           >
@@ -413,7 +429,7 @@ export default function TasksPage() {
           <Button
             variant={viewMode === 'board' ? 'default' : 'ghost'}
             size="icon"
-            className="h-8 w-8 hover:bg-indigo-200 hover:text-black"
+            className="h-8 w-8 hover:bg-indigo-200 hover:text-black cursor-pointer"
             onClick={() => handleViewChange('board')}
             title="Board View"
           >
@@ -451,26 +467,61 @@ export default function TasksPage() {
           </div>
 
           <div>
-            <label className="text-sm font-medium mb-2 block">Task List</label>
-            <Select value={taskListFilter} onValueChange={setTaskListFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="All lists" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Lists</SelectItem>
-                {taskLists.map((list) => (
-                  <SelectItem key={list._id} value={list._id}>
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="w-2 h-2 rounded-full"
-                        style={{ backgroundColor: list.color }}
-                      />
-                      {list.name}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <label className="text-sm font-medium mb-2 block">Company Name</label>
+            <Popover open={companyComboOpen} onOpenChange={setCompanyComboOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={companyComboOpen}
+                  className="w-full justify-between font-normal hover:bg-transparent hover:text-black"
+                >
+                  <span className="truncate">
+                    {taskListFilter !== 'all'
+                      ? taskLists.find((l) => l._id === taskListFilter)?.name
+                      : 'All Companies'}
+                  </span>
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="p-0" style={{ width: 'var(--radix-popover-trigger-width)' }}>
+                <Command>
+                  <CommandInput placeholder="Search company..." />
+                  <CommandList>
+                    <CommandEmpty>No company found.</CommandEmpty>
+                    <CommandGroup>
+                      <CommandItem
+                        value="all"
+                        onSelect={() => {
+                          setTaskListFilter('all');
+                          setCompanyComboOpen(false);
+                        }}
+                      >
+                        All Companies
+                      </CommandItem>
+                      {taskLists.map((list) => (
+                        <CommandItem
+                          key={list._id}
+                          value={list.name}
+                          onSelect={() => {
+                            setTaskListFilter(list._id);
+                            setCompanyComboOpen(false);
+                          }}
+                        >
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="w-2 h-2 rounded-full shrink-0"
+                              style={{ backgroundColor: list.color }}
+                            />
+                            {list.name}
+                          </div>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
 
           <div>

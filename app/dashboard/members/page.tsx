@@ -29,10 +29,13 @@ import {
 } from '@/components/ui/table';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiClient } from '@/lib/api-client';
-import { Plus, RefreshCw, Search, Shield, UserCheck, Users, UserX } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, RefreshCw, Search, Shield, UserCheck, Users, UserX } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
+
+const PAGE_SIZE_OPTIONS = [5, 10, 25, 50] as const;
+type PageSizeOption = (typeof PAGE_SIZE_OPTIONS)[number];
 
 function getRoleBadgeClass(role: string) {
   if (role === 'Admin') return 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300 border-purple-200 dark:border-purple-700';
@@ -59,6 +62,9 @@ export default function MembersPage() {
     managerId: '',
   });
   const [submitting, setSubmitting] = useState(false);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<PageSizeOption>(10);
+  const [nameSortDir, setNameSortDir] = useState<'asc' | 'desc'>('asc');
 
   useEffect(() => {
     if (!isAdmin) {
@@ -73,6 +79,7 @@ export default function MembersPage() {
     try {
       setLoading(true);
       const response = await apiClient.get<any>('/api/users');
+      console.log(response);
       setMembers(response.users || []);
     } catch (error) {
       console.error('Failed to fetch members:', error);
@@ -154,8 +161,13 @@ export default function MembersPage() {
     return map;
   }, [members]);
 
+  // Reset to page 1 whenever filters, search, page size, or sort change
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery, roleFilter, statusFilter, pageSize, nameSortDir]);
+
   const filteredMembers = useMemo(() => {
-    return members.filter((m) => {
+    const result = members.filter((m) => {
       const q = searchQuery.toLowerCase();
       const matchesSearch =
         !q ||
@@ -168,7 +180,18 @@ export default function MembersPage() {
         (statusFilter === 'active' ? m.isActive : !m.isActive);
       return matchesSearch && matchesRole && matchesStatus;
     });
-  }, [members, searchQuery, roleFilter, statusFilter]);
+
+    return [...result].sort((a, b) => {
+      const cmp = (a.name ?? '').localeCompare(b.name ?? '');
+      return nameSortDir === 'asc' ? cmp : -cmp;
+    });
+  }, [members, searchQuery, roleFilter, statusFilter, nameSortDir]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredMembers.length / pageSize));
+  const paginatedMembers = useMemo(
+    () => filteredMembers.slice((page - 1) * pageSize, page * pageSize),
+    [filteredMembers, page, pageSize]
+  );
 
   const stats = useMemo(() => ({
     total: members.length,
@@ -413,7 +436,23 @@ export default function MembersPage() {
           <Table>
             <TableHeader>
               <TableRow className="bg-gray-50 dark:bg-gray-800/50">
-                <TableHead className="pl-4 py-2">Member</TableHead>
+                <TableHead className="pl-4 py-2">
+                  <button
+                    type="button"
+                    onClick={() => setNameSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))}
+                    className="inline-flex items-center gap-1 font-medium hover:text-foreground transition-colors group"
+                    title={`Sort by name ${nameSortDir === 'asc' ? 'descending' : 'ascending'}`}
+                  >
+                    Member
+                    <span className="text-muted-foreground group-hover:text-foreground">
+                      {nameSortDir === 'asc' ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20V4" /><path d="m5 11 7-7 7 7" /></svg>
+                      ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 4v16" /><path d="m19 13-7 7-7-7" /></svg>
+                      )}
+                    </span>
+                  </button>
+                </TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>Team Info</TableHead>
@@ -423,20 +462,20 @@ export default function MembersPage() {
               </TableRow>
             </TableHeader>
             <TableBody className='bg-white'>
-              {filteredMembers.length === 0 ? (
+              {paginatedMembers.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="py-12 text-center text-gray-500 dark:text-gray-400">
                     No members match your filters.
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredMembers.map((member) => {
+                paginatedMembers.map((member) => {
                   const managerId = typeof member.managerId === 'object'
                     ? member.managerId?._id ?? member.managerId?.toString()
                     : member.managerId;
 
                   let teamInfoCell: React.ReactNode = <span className="text-gray-400">—</span>;
-                  if (member.role === 'Manager') {
+                  if (['Manager', 'Admin'].includes(member.role)) {
                     const count = teamSizeByManager[member._id] ?? 0;
                     teamInfoCell = (
                       <span className="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400 font-medium">
@@ -453,7 +492,7 @@ export default function MembersPage() {
 
                   return (
                     <TableRow key={member._id} className='cursor-pointer' onClick={() => router.push(`/dashboard/members/${member._id}`)} >
-                      <TableCell className="pl-4 py-4">
+                      <TableCell className="pl-4 py-2">
                         <Link href={`/dashboard/members/${member._id}`} className="group">
                           <p className="font-medium text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                             {member.name}
@@ -509,6 +548,56 @@ export default function MembersPage() {
               )}
             </TableBody>
           </Table>
+        </div>
+      )}
+
+      {/* Pagination */}
+      {!loading && (
+        <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2">
+            <span>Rows per page:</span>
+            <Select
+              value={String(pageSize)}
+              onValueChange={(v) => setPageSize(Number(v) as PageSizeOption)}
+            >
+              <SelectTrigger className="h-8 w-16 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PAGE_SIZE_OPTIONS.map((n) => (
+                  <SelectItem key={n} value={String(n)}>{n}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {filteredMembers.length > 0 && (
+              <span className="ml-1">
+                Showing {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, filteredMembers.length)} of {filteredMembers.length}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page <= 1}
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Prev
+            </Button>
+            <span className="font-medium px-2">
+              {page} / {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page >= totalPages}
+            >
+              Next
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       )}
     </div>

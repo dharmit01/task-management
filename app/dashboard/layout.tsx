@@ -4,7 +4,7 @@ import { GlobalSearch } from '@/components/GlobalSearch';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
-import { Calendar, CheckSquare, ChevronDown, ChevronRight, ClipboardList, Clock, FileText, LayoutDashboard, LogOut, UserCircle, Users } from 'lucide-react';
+import { Building2, Calendar, CheckSquare, ChevronDown, ChevronRight, ClipboardList, Clock, FileText, LayoutDashboard, LogOut, UserCircle, Users } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -102,6 +102,23 @@ export default function DashboardLayout({
               <span className="font-medium">Tasks</span>
             </Button>
           </Link>
+
+          {(isAdmin || isManager) && (
+            <Link href="/dashboard/companies" className="cursor-pointer">
+              <Button
+                variant="ghost"
+                className={cn(
+                  "w-full justify-start group transition-all cursor-pointer",
+                  pathname?.startsWith('/dashboard/companies')
+                    ? "bg-orange-500/15 text-orange-600 hover:bg-orange-500/20 dark:bg-orange-500/20 dark:text-orange-400 dark:hover:bg-orange-500/25"
+                    : "hover:bg-orange-500/10 hover:text-orange-600 dark:hover:text-orange-400"
+                )}
+              >
+                <Building2 className="mr-3 h-5 w-5 text-orange-500 group-hover:scale-110 transition-transform" />
+                <span className="font-medium">Companies</span>
+              </Button>
+            </Link>
+          )}
 
           <Link href="/dashboard/notes" className="cursor-pointer">
             <Button

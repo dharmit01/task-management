@@ -67,7 +67,7 @@ export async function GET(
     }
 
     const teamMembers =
-      isAdminUser && user.role === "Manager"
+      isAdminUser && ["Manager", "Admin"].includes(user.role)
         ? await getTeamMembers(user._id, { includeInactive: true })
         : undefined;
 

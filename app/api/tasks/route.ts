@@ -1,6 +1,6 @@
 import { isAdmin, isManager, requireAuth } from "@/lib/auth";
 import connectDB from "@/lib/db";
-import { getTeamMembers, validateTaskAssignment } from "@/lib/team-utils";
+import { getTeamMembers } from "@/lib/team-utils";
 import { getNextSequence } from "@/models/Counter";
 import Task from "@/models/Task";
 import TaskList from "@/models/TaskList";
@@ -179,29 +179,6 @@ export async function POST(request: NextRequest) {
     const taskData = validationResult.data;
 
     await connectDB();
-
-    // Validate task assignment for managers
-    if (
-      isManager(authResult.user) &&
-      taskData.assignedTo &&
-      taskData.assignedTo.length > 0
-    ) {
-      const invalidIds = await validateTaskAssignment(
-        authResult.user._id,
-        taskData.assignedTo,
-      );
-
-      if (invalidIds.length > 0) {
-        return NextResponse.json(
-          {
-            error:
-              "Cannot assign task to users outside your team. You can only assign to your team members, other Managers, or Admins.",
-            invalidUserIds: invalidIds,
-          },
-          { status: 403 },
-        );
-      }
-    }
 
     // Convert assignedTo strings to ObjectIds if provided
     const assignedToIds = taskData.assignedTo

@@ -39,8 +39,8 @@ import { apiClient } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
 import { ArrowLeft, Check, ChevronsUpDown, Plus } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 interface User {
@@ -58,8 +58,10 @@ interface TaskList {
   color: string;
 }
 
-export default function NewTaskPage() {
+function NewTaskPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const preselectedTaskList = searchParams.get('taskList');
   const { isAdmin, isManager } = useAuth();
   const [members, setMembers] = useState<User[]>([]);
   const [taskLists, setTaskLists] = useState<TaskList[]>([]);
@@ -100,13 +102,23 @@ export default function NewTaskPage() {
       const response = await apiClient.get<{ success: boolean; taskLists: TaskList[] }>('/api/task-lists');
       setTaskLists(response.taskLists || []);
     } catch (error) {
-      console.error('Failed to fetch task lists:', error);
+      console.error('Failed to fetch companies:', error);
     }
   };
 
+  // Pre-select company when navigating from /dashboard/companies/[id]
+  useEffect(() => {
+    if (preselectedTaskList && taskLists.length > 0) {
+      const exists = taskLists.some((tl) => tl._id === preselectedTaskList);
+      if (exists) {
+        setFormData((prev) => ({ ...prev, taskList: preselectedTaskList }));
+      }
+    }
+  }, [taskLists, preselectedTaskList]);
+
   const handleCreateTaskList = async () => {
     if (!newTaskList.name.trim()) {
-      toast.error('Please enter a task list name');
+      toast.error('Please enter a company name');
       return;
     }
 
@@ -117,8 +129,8 @@ export default function NewTaskPage() {
       setNewTaskList({ name: '', description: '', color: '#3b82f6' });
       setOpenTaskListDialog(false);
     } catch (error: unknown) {
-      console.error('Failed to create task list:', error);
-      toast.error('Failed to create task list');
+      console.error('Failed to create company:', error);
+      toast.error('Failed to create company');
     }
   };
 
@@ -126,7 +138,7 @@ export default function NewTaskPage() {
     e.preventDefault();
 
     if (!formData.taskList) {
-      toast.error('Please select a task list');
+      toast.error('Please select a company');
       return;
     }
 
@@ -229,35 +241,35 @@ export default function NewTaskPage() {
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label>Task List *</Label>
+                <Label>Company Name *</Label>
                 <Dialog open={openTaskListDialog} onOpenChange={setOpenTaskListDialog}>
                   <DialogTrigger asChild>
                     <Button type="button" variant="outline" size="sm">
                       <Plus className="mr-2 h-3 w-3" />
-                      New List
+                      New Company
                     </Button>
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>Create Task List</DialogTitle>
+                      <DialogTitle>Create Company</DialogTitle>
                       <DialogDescription>
-                        Create a new task list to organize your tasks
+                        Create a new company to organize your tasks
                       </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                       <div className="space-y-2">
-                        <Label htmlFor="list-name">Name *</Label>
+                        <Label htmlFor="company-name">Name *</Label>
                         <Input
-                          id="list-name"
+                          id="company-name"
                           placeholder="e.g., Development, Design"
                           value={newTaskList.name}
                           onChange={(e) => setNewTaskList({ ...newTaskList, name: e.target.value })}
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="list-description">Description</Label>
+                        <Label htmlFor="company-description">Description</Label>
                         <Textarea
-                          id="list-description"
+                          id="company-description"
                           placeholder="Optional description"
                           value={newTaskList.description}
                           onChange={(e) => setNewTaskList({ ...newTaskList, description: e.target.value })}
@@ -300,7 +312,7 @@ export default function NewTaskPage() {
                 disabled={loading}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select task list">
+                  <SelectValue placeholder="Select company">
                     {selectedTaskList && (
                       <div className="flex items-center gap-2">
                         <div
@@ -445,5 +457,13 @@ export default function NewTaskPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function NewTaskPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}>
+      <NewTaskPageContent />
+    </Suspense>
   );
 }
