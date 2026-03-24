@@ -1,5 +1,6 @@
 'use client';
 
+import { StatBadge } from '@/components/common/StatBadge';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -10,7 +11,6 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -274,18 +274,6 @@ function DeleteConfirmDialog({
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
-    );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// StatBadge — small colored pill for status counts
-// ─────────────────────────────────────────────────────────────────────────────
-function StatBadge({ count, className }: { count: number; className: string }) {
-    if (count === 0) return <span className="text-muted-foreground text-sm">—</span>;
-    return (
-        <Badge className={`text-xs tabular-nums ${className}`}>
-            {count}
-        </Badge>
     );
 }
 

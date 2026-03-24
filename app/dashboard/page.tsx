@@ -4,74 +4,13 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
-import { apiClient } from '@/lib/api-client';
-import { AlertCircle, CheckCircle, Clock, Plus, TrendingUp } from 'lucide-react';
+import { useTasks } from '@/hooks/useTasks';
+import { AlertCircle, CheckCircle, Clock, ListTodo, Plus, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
-
-interface TaskStats {
-  total: number;
-  today: number;
-  overdue: number;
-  highPriority: number;
-  completed: number;
-}
 
 export default function DashboardPage() {
   const { user, isAdmin } = useAuth();
-  const [stats, setStats] = useState<TaskStats>({
-    total: 0,
-    today: 0,
-    overdue: 0,
-    highPriority: 0,
-    completed: 0,
-  });
-  const [recentTasks, setRecentTasks] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  const fetchDashboardData = async () => {
-    try {
-      setLoading(true);
-
-      // Fetch all tasks
-      const allTasksResponse = await apiClient.get<any>('/api/tasks');
-      const tasks = allTasksResponse.tasks || [];
-
-      // Calculate stats
-      const now = new Date();
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-
-      const statsData: TaskStats = {
-        total: tasks.length,
-        today: tasks.filter((t: any) => {
-          const startDate = new Date(t.startDate);
-          return startDate >= today && startDate < tomorrow;
-        }).length,
-        overdue: tasks.filter((t: any) => {
-          const endDate = new Date(t.endDate);
-          return endDate < now && t.status !== 'Completed';
-        }).length,
-        highPriority: tasks.filter(
-          (t: any) => t.priority === 'High' || t.priority === 'Critical'
-        ).length,
-        completed: tasks.filter((t: any) => t.status === 'Completed').length,
-      };
-
-      setStats(statsData);
-      setRecentTasks(tasks.slice(0, 5));
-    } catch (error) {
-      console.error('Failed to fetch dashboard data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { loading, stats, recentTasks } = useTasks();
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -214,10 +153,14 @@ export default function DashboardPage() {
                         {task.title}
                       </h3>
                       <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                        Assigned to: {Array.isArray(task.assignedTo)
-                          ? task.assignedTo.map((a: any) => a.name).join(', ')
-                          : task.assignedTo?.name || 'Unassigned'}
+                        Assigned to: {task.assignedTo && task.assignedTo.length > 0
+                          ? task.assignedTo.map((a) => a.name).join(', ')
+                          : 'Unassigned'}
                       </p>
+                      <div className="flex items-center gap-1.5 mt-2 text-sm text-gray-500">
+                        <ListTodo className="h-4 w-4" style={{ color: task.taskList?.color }} />
+                        <span className="font-medium">{task.taskList?.name || 'No List'}</span>
+                      </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge className={getPriorityColor(task.priority)}>

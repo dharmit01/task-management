@@ -146,7 +146,7 @@ export async function GET(request: NextRequest) {
       .populate("taskList", "name color")
       .sort({ createdAt: -1 });
 
-    return NextResponse.json({ success: true, tasks }, { status: 200 });
+    return NextResponse.json({ success: true, data: tasks }, { status: 200 });
   } catch (error) {
     console.error("Get tasks error:", error);
     return NextResponse.json(

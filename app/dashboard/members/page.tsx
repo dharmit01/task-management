@@ -1,5 +1,6 @@
 'use client';
 
+import { StatBadge } from '@/components/common/StatBadge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -79,7 +80,6 @@ export default function MembersPage() {
     try {
       setLoading(true);
       const response = await apiClient.get<any>('/api/users');
-      console.log(response);
       setMembers(response.users || []);
     } catch (error) {
       console.error('Failed to fetch members:', error);
@@ -453,12 +453,13 @@ export default function MembersPage() {
                     </span>
                   </button>
                 </TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Team Info</TableHead>
-                <TableHead>Leave Balance</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead className='text-center'>Username</TableHead>
+                <TableHead className='text-center'>Role</TableHead>
+                <TableHead className='text-center'>Team Info</TableHead>
+                <TableHead className='text-center'>Assigned Tasks</TableHead>
+                <TableHead className='text-center'>Leave Balance</TableHead>
+                <TableHead className='text-center'>Status</TableHead>
+                <TableHead className='text-center'>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody className='bg-white'>
@@ -497,22 +498,24 @@ export default function MembersPage() {
                           <p className="font-medium text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                             {member.name}
                           </p>
-                          <p className="text-xs text-gray-400 dark:text-gray-500">@{member.username}</p>
                         </Link>
                       </TableCell>
-                      <TableCell className="text-gray-600 dark:text-gray-400 text-sm">
-                        {member.email || <span className="text-gray-400">—</span>}
+                      <TableCell className="text-gray-600 dark:text-gray-400 text-sm text-center">
+                        @{member.username}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className='text-center'>
                         <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${getRoleBadgeClass(member.role)}`}>
                           {member.role}
                         </span>
                       </TableCell>
-                      <TableCell className="text-sm">{teamInfoCell}</TableCell>
-                      <TableCell className="text-sm text-gray-700 dark:text-gray-300">
+                      <TableCell className="text-sm text-center">{teamInfoCell}</TableCell>
+                      <TableCell className="text-sm text-center">
+                        <StatBadge count={member.tasksCount} className="bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200" />
+                      </TableCell>
+                      <TableCell className="text-sm text-center">
                         {member.annualLeaveBalance} days
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-center">
                         {member.isActive ? (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 border border-green-200 dark:border-green-700">
                             <UserCheck className="h-3 w-3" /> Active
@@ -523,8 +526,8 @@ export default function MembersPage() {
                           </span>
                         )}
                       </TableCell>
-                      <TableCell className="pr-4">
-                        <div className="flex items-center gap-2">
+                      <TableCell className="pr-4 text-center">
+                        <div className="flex items-center justify-center gap-2">
                           <Link href={`/dashboard/members/${member._id}`}>
                             <Button size="sm" variant="outline" className="h-7 text-xs cursor-pointer">
                               View Tasks

@@ -1,5 +1,6 @@
 import { requireAdmin } from "@/lib/auth";
 import connectDB from "@/lib/db";
+import Task from "@/models/Task";
 import User from "@/models/User";
 import bcrypt from "bcryptjs";
 import { NextRequest, NextResponse } from "next/server";
@@ -24,9 +25,28 @@ export async function GET(request: NextRequest) {
   try {
     await connectDB();
 
-    const users = await User.find({})
-      .select("-password")
-      .sort({ createdAt: -1 });
+    const users = await User.aggregate([
+      {
+        $lookup: {
+          from: Task.collection.name,
+          let: { userId: "$_id" },
+          pipeline: [
+            { $match: { $expr: { $in: ["$$userId", "$assignedTo"] } } },
+            { $count: "total" },
+          ],
+          as: "taskStats",
+        },
+      },
+      {
+        $addFields: {
+          tasksCount: {
+            $ifNull: [{ $arrayElemAt: ["$taskStats.total", 0] }, 0],
+          },
+        },
+      },
+      { $unset: ["password", "taskStats"] },
+      { $sort: { createdAt: -1 } },
+    ]);
 
     return NextResponse.json({ success: true, users }, { status: 200 });
   } catch (error) {
