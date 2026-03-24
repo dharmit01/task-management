@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { Check, ChevronsUpDown, Filter, Sparkles, Users } from "lucide-react";
+import { Check, ChevronDown, Filter, Sparkles } from "lucide-react";
 import { useMemo, useState } from "react";
 import { TaskFilterMember, TaskList } from "./types";
 
@@ -122,10 +122,10 @@ export function TaskFilters({
 
   return (
     <section className="relative overflow-hidden rounded-[28px] border border-border/70 bg-background/95 shadow-[0_20px_80px_-48px_rgba(15,23,42,0.65)]">
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+      <div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-primary/40 to-transparent" />
       <div className="absolute -top-16 right-0 h-40 w-40 rounded-full bg-primary/10 blur-3xl" />
 
-      <div className="relative border-b border-border/60 bg-gradient-to-br from-primary/[0.08] via-background to-background px-5 py-5 sm:px-6">
+      <div className="relative border-b border-border/60 bg-linear-to-br from-primary/8 via-background to-background px-5 py-5 sm:px-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-3">
             <div className="flex items-center gap-3">
@@ -137,14 +137,6 @@ export function TaskFilters({
                   <h2 className="text-xl font-semibold tracking-tight">
                     Refine task results
                   </h2>
-                  <Badge
-                    variant={activeFilterCount > 0 ? "default" : "secondary"}
-                    className="rounded-full px-2.5 py-1 text-[11px] uppercase tracking-[0.18em]"
-                  >
-                    {activeFilterCount > 0
-                      ? `${activeFilterCount} active`
-                      : "Ready"}
-                  </Badge>
                 </div>
                 <p className="max-w-2xl text-sm text-muted-foreground">
                   Slice the board by urgency, company, status, and assignee with
@@ -186,7 +178,7 @@ export function TaskFilters({
       <div className="grid gap-4 p-5 sm:grid-cols-2 sm:p-6 xl:grid-cols-5">
         <FilterField label="View preset" eyebrow="Focus">
           <Select value={filter} onValueChange={onFilterChange}>
-            <SelectTrigger className="h-11 rounded-2xl border-border/70 bg-background/80">
+            <SelectTrigger className="data-[size=default]:h-11 w-full rounded-2xl border-border/70 bg-background/80">
               <SelectValue placeholder="All tasks" />
             </SelectTrigger>
             <SelectContent>
@@ -208,10 +200,10 @@ export function TaskFilters({
                 variant="outline"
                 role="combobox"
                 aria-expanded={companyComboOpen}
-                className="h-11 w-full justify-between rounded-2xl border-border/70 bg-background/80 px-3 font-normal text-foreground shadow-none"
+                className="h-11 w-full justify-between rounded-2xl border-border/70 bg-background/80 px-3 font-normal text-foreground shadow-none hover:bg-transparent hover:text-black"
               >
                 <span className="truncate">{selectedTaskListName}</span>
-                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 text-muted-foreground" />
+                <ChevronDown className="ml-2 h-4 w-4 shrink-0 text-muted-foreground" />
               </Button>
             </PopoverTrigger>
             <PopoverContent
@@ -232,8 +224,10 @@ export function TaskFilters({
                     >
                       <Check
                         className={cn(
-                          "mr-2 h-4 w-4",
-                          taskListFilter === "all" ? "opacity-100" : "opacity-0",
+                          "h-4 w-4",
+                          taskListFilter === "all"
+                            ? "opacity-100"
+                            : "opacity-0",
                         )}
                       />
                       All Companies
@@ -249,7 +243,7 @@ export function TaskFilters({
                       >
                         <Check
                           className={cn(
-                            "mr-2 h-4 w-4",
+                            "h-4 w-4",
                             taskListFilter === list._id
                               ? "opacity-100"
                               : "opacity-0",
@@ -279,13 +273,10 @@ export function TaskFilters({
                   variant="outline"
                   role="combobox"
                   aria-expanded={memberComboOpen}
-                  className="h-11 w-full justify-between rounded-2xl border-border/70 bg-background/80 px-3 font-normal text-foreground shadow-none"
+                  className="h-11 w-full justify-between rounded-2xl border-border/70 bg-background/80 px-3 font-normal text-foreground shadow-none hover:bg-transparent hover:text-black"
                 >
-                  <span className="flex min-w-0 items-center gap-2 truncate">
-                    <Users className="h-4 w-4 shrink-0 text-muted-foreground" />
-                    <span className="truncate">{selectedMemberName}</span>
-                  </span>
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 text-muted-foreground" />
+                  <span className="truncate">{selectedMemberName}</span>
+                  <ChevronDown className="ml-2 h-4 w-4 shrink-0 text-muted-foreground" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent
@@ -307,7 +298,9 @@ export function TaskFilters({
                         <Check
                           className={cn(
                             "mr-2 h-4 w-4",
-                            memberFilter === "all" ? "opacity-100" : "opacity-0",
+                            memberFilter === "all"
+                              ? "opacity-100"
+                              : "opacity-0",
                           )}
                         />
                         All Members
@@ -351,7 +344,7 @@ export function TaskFilters({
 
         <FilterField label="Status" eyebrow="Delivery">
           <Select value={statusFilter} onValueChange={onStatusChange}>
-            <SelectTrigger className="h-11 rounded-2xl border-border/70 bg-background/80">
+            <SelectTrigger className="data-[size=default]:h-11 w-full rounded-2xl border-border/70 bg-background/80">
               <SelectValue placeholder="All statuses" />
             </SelectTrigger>
             <SelectContent>
@@ -367,7 +360,7 @@ export function TaskFilters({
 
         <FilterField label="Priority" eyebrow="Urgency">
           <Select value={priorityFilter} onValueChange={onPriorityChange}>
-            <SelectTrigger className="h-11 rounded-2xl border-border/70 bg-background/80">
+            <SelectTrigger className="data-[size=default]:h-11 w-full rounded-2xl border-border/70 bg-background/80">
               <SelectValue placeholder="All priorities" />
             </SelectTrigger>
             <SelectContent>

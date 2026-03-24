@@ -79,4 +79,5 @@ export interface UseTasksFilters {
   assignedTo?: string;
   search?: string;
   page?: number;
+  limit?: number;
 }

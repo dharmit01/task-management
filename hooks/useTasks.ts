@@ -42,7 +42,7 @@ export const useTasks = (filters?: UseTasksFilters) => {
         // Only append page/limit when caller requests pagination (board mode omits it)
         if (filters?.page !== undefined) {
           queryParams.append("page", String(filters.page));
-          queryParams.append("limit", "25");
+          queryParams.append("limit", String(filters.limit ?? 25));
         }
 
         const qs = queryParams.toString();
@@ -96,6 +96,7 @@ export const useTasks = (filters?: UseTasksFilters) => {
     filters?.assignedTo,
     filters?.search,
     filters?.page,
+    filters?.limit,
   ]);
 
   return {

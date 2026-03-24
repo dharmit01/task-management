@@ -5,11 +5,7 @@ import { TaskPagination } from "@/components/tasks/TaskPagination";
 import { TaskSearchBar } from "@/components/tasks/TaskSearchBar";
 import { TasksPageHeader } from "@/components/tasks/TasksPageHeader";
 import { TaskView } from "@/components/tasks/TaskView";
-import {
-  TaskFilterMember,
-  TaskList,
-  ViewMode,
-} from "@/components/tasks/types";
+import { TaskFilterMember, TaskList, ViewMode } from "@/components/tasks/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTasks } from "@/hooks/useTasks";
 import { apiClient } from "@/lib/api-client";
@@ -32,6 +28,7 @@ export default function TasksPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [searchPage, setSearchPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
     if (typeof window === "undefined") return "card";
     const saved = localStorage.getItem("tasks-view-mode") as ViewMode | null;
@@ -80,6 +77,7 @@ export default function TasksPage() {
     search: debouncedSearch,
     // Board view loads all tasks — omit page to bypass pagination
     page: viewMode !== "board" ? searchPage : undefined,
+    limit: pageSize,
   });
 
   const handleViewChange = (mode: ViewMode) => {
@@ -178,8 +176,15 @@ export default function TasksPage() {
         searchQuery={debouncedSearch}
         isAdmin={isAdmin}
       />
-      {viewMode !== "board" && pagination && pagination.totalPages > 1 && (
-        <TaskPagination pagination={pagination} onPageChange={setSearchPage} />
+      {viewMode !== "board" && pagination && pagination.total > 0 && (
+        <TaskPagination
+          pagination={pagination}
+          onPageChange={setSearchPage}
+          onLimitChange={(size) => {
+            setPageSize(size);
+            setSearchPage(1);
+          }}
+        />
       )}
     </div>
   );
