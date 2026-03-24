@@ -4,6 +4,7 @@ export interface TaskList {
   _id: string;
   name: string;
   color: string;
+  description?: string;
 }
 
 export interface Assignee {

@@ -38,6 +38,7 @@ interface TaskFiltersProps {
   isAdmin: boolean;
   canFilterByMember: boolean;
   activeFilterCount: number;
+  hideTaskListFilter?: boolean;
   onFilterChange: (value: string) => void;
   onStatusChange: (value: string) => void;
   onPriorityChange: (value: string) => void;
@@ -81,6 +82,7 @@ export function TaskFilters({
   isAdmin,
   canFilterByMember,
   activeFilterCount,
+  hideTaskListFilter = false,
   onFilterChange,
   onStatusChange,
   onPriorityChange,
@@ -137,10 +139,19 @@ export function TaskFilters({
                   <h2 className="text-xl font-semibold tracking-tight">
                     Refine task results
                   </h2>
+                  {activeFilterCount > 0 && (
+                    <Badge
+                      variant="secondary"
+                      className="rounded-full border border-border/70 bg-background/80 px-3 py-1 text-xs font-medium"
+                    >
+                      {activeFilterCount} active
+                    </Badge>
+                  )}
                 </div>
                 <p className="max-w-2xl text-sm text-muted-foreground">
-                  Slice the board by urgency, company, status, and assignee with
-                  a faster search-first workflow.
+                  {hideTaskListFilter
+                    ? "Slice the board by urgency, status, and assignee with a faster search-first workflow."
+                    : "Slice the board by urgency, company, status, and assignee with a faster search-first workflow."}
                 </p>
               </div>
             </div>
@@ -193,83 +204,87 @@ export function TaskFilters({
           </Select>
         </FilterField>
 
-        <FilterField label="Company" eyebrow="Grouping">
-          <Popover open={companyComboOpen} onOpenChange={setCompanyComboOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                role="combobox"
-                aria-expanded={companyComboOpen}
-                className="h-11 w-full justify-between rounded-2xl border-border/70 bg-background/80 px-3 font-normal text-foreground shadow-none hover:bg-transparent hover:text-black"
+        {!hideTaskListFilter && (
+          <FilterField label="Company" eyebrow="Grouping">
+            <Popover open={companyComboOpen} onOpenChange={setCompanyComboOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={companyComboOpen}
+                  className="h-11 w-full justify-between rounded-2xl border-border/70 bg-background/80 px-3 font-normal text-foreground shadow-none hover:bg-transparent hover:text-black"
+                >
+                  <span className="truncate">{selectedTaskListName}</span>
+                  <ChevronDown className="ml-2 h-4 w-4 shrink-0 text-muted-foreground" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent
+                align="start"
+                className="w-[--radix-popover-trigger-width] rounded-2xl border-border/70 p-0"
               >
-                <span className="truncate">{selectedTaskListName}</span>
-                <ChevronDown className="ml-2 h-4 w-4 shrink-0 text-muted-foreground" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent
-              align="start"
-              className="w-[--radix-popover-trigger-width] rounded-2xl border-border/70 p-0"
-            >
-              <Command>
-                <CommandInput placeholder="Search company..." />
-                <CommandList>
-                  <CommandEmpty>No company found.</CommandEmpty>
-                  <CommandGroup>
-                    <CommandItem
-                      value="all companies"
-                      onSelect={() => {
-                        onTaskListChange("all");
-                        setCompanyComboOpen(false);
-                      }}
-                    >
-                      <Check
-                        className={cn(
-                          "h-4 w-4",
-                          taskListFilter === "all"
-                            ? "opacity-100"
-                            : "opacity-0",
-                        )}
-                      />
-                      All Companies
-                    </CommandItem>
-                    {taskLists.map((list) => (
+                <Command onKeyDown={(e) => e.stopPropagation()}>
+                  <CommandInput placeholder="Search company..." />
+                  <CommandList>
+                    <CommandEmpty>No company found.</CommandEmpty>
+                    <CommandGroup>
                       <CommandItem
-                        key={list._id}
-                        value={list.name}
+                        value="all companies"
                         onSelect={() => {
-                          onTaskListChange(list._id);
+                          onTaskListChange("all");
                           setCompanyComboOpen(false);
                         }}
                       >
                         <Check
                           className={cn(
                             "h-4 w-4",
-                            taskListFilter === list._id
+                            taskListFilter === "all"
                               ? "opacity-100"
                               : "opacity-0",
                           )}
                         />
-                        <div className="flex min-w-0 items-center gap-2">
-                          <div
-                            className="h-2.5 w-2.5 shrink-0 rounded-full"
-                            style={{ backgroundColor: list.color }}
-                          />
-                          <span className="truncate">{list.name}</span>
-                        </div>
+                        All Companies
                       </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
-        </FilterField>
+                      {taskLists.map((list) => (
+                        <CommandItem
+                          key={list._id}
+                          value={list.name}
+                          onSelect={() => {
+                            onTaskListChange(list._id);
+                            setCompanyComboOpen(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "h-4 w-4",
+                              taskListFilter === list._id
+                                ? "opacity-100"
+                                : "opacity-0",
+                            )}
+                          />
+                          <div className="flex min-w-0 items-center gap-2">
+                            <div
+                              className="h-2.5 w-2.5 shrink-0 rounded-full"
+                              style={{ backgroundColor: list.color }}
+                            />
+                            <span className="truncate">{list.name}</span>
+                          </div>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          </FilterField>
+        )}
 
         {canFilterByMember && (
           <FilterField label="Member" eyebrow="Ownership">
             <Popover open={memberComboOpen} onOpenChange={setMemberComboOpen}>
               <PopoverTrigger asChild>
                 <Button
+                  type="button"
                   variant="outline"
                   role="combobox"
                   aria-expanded={memberComboOpen}
@@ -283,7 +298,7 @@ export function TaskFilters({
                 align="start"
                 className="w-[--radix-popover-trigger-width] rounded-2xl border-border/70 p-0"
               >
-                <Command>
+                <Command onKeyDown={(e) => e.stopPropagation()}>
                   <CommandInput placeholder="Search member by name..." />
                   <CommandList>
                     <CommandEmpty>No member found.</CommandEmpty>
