@@ -772,7 +772,7 @@ export default function MemberDetailPage({ params }: { params: Promise<{ id: str
       {/* Assigned Tasks */}
       <Card>
         <CardHeader>
-          <CardTitle>Assigned Tasks</CardTitle>
+          <CardTitle>Assigned Tasks {tasks.length > 0 && `(${tasks.length})`}</CardTitle>
           <CardDescription>
             All tasks assigned to {member?.name || 'this member'}
           </CardDescription>
@@ -793,7 +793,7 @@ export default function MemberDetailPage({ params }: { params: Promise<{ id: str
             <div className="space-y-4">
               {tasks.map((task) => (
                 <Link key={task._id} href={`/dashboard/tasks/${task._id}`}>
-                  <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer">
+                  <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer mb-3">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
