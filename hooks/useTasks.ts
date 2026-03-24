@@ -1,12 +1,18 @@
 import { apiClient } from "@/lib/api-client";
-import { APIResponse } from "@/lib/utils";
 import { useEffect, useState } from "react";
-import { Task, TaskStats, UseTasksFilters } from "../components/tasks/types";
+import {
+  PaginationMeta,
+  Task,
+  TaskStats,
+  TasksApiResponse,
+  UseTasksFilters,
+} from "../components/tasks/types";
 
 export const useTasks = (filters?: UseTasksFilters) => {
   const [loading, setLoading] = useState(false);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [recentTasks, setRecentTasks] = useState<Task[]>([]);
+  const [pagination, setPagination] = useState<PaginationMeta | null>(null);
   const [stats, setStats] = useState<TaskStats>({
     total: 0,
     today: 0,
@@ -29,14 +35,23 @@ export const useTasks = (filters?: UseTasksFilters) => {
           queryParams.append("priority", filters.priority);
         if (filters?.taskList && filters.taskList !== "all")
           queryParams.append("taskList", filters.taskList);
+        if (filters?.assignedTo && filters.assignedTo !== "all")
+          queryParams.append("assignedTo", filters.assignedTo);
         if (filters?.search?.trim())
           queryParams.append("search", filters.search.trim());
+        // Only append page/limit when caller requests pagination (board mode omits it)
+        if (filters?.page !== undefined) {
+          queryParams.append("page", String(filters.page));
+          queryParams.append("limit", "25");
+        }
 
         const qs = queryParams.toString();
-        const allTasksResponse = await apiClient.get<APIResponse<Task[]>>(
+        const response = await apiClient.get<TasksApiResponse>(
           qs ? `/api/tasks?${qs}` : "/api/tasks",
         );
-        const tasks = allTasksResponse.data ?? [];
+        const tasks = response.data ?? [];
+
+        setPagination(response.pagination ?? null);
 
         // Only compute dashboard stats when called without filters
         if (!filters) {
@@ -78,13 +93,16 @@ export const useTasks = (filters?: UseTasksFilters) => {
     filters?.status,
     filters?.priority,
     filters?.taskList,
+    filters?.assignedTo,
     filters?.search,
+    filters?.page,
   ]);
 
   return {
     tasks,
     recentTasks,
     stats,
+    pagination,
     loading,
   };
 };

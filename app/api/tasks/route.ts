@@ -140,6 +140,44 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    const pageParam = searchParams.get("page");
+    const page = Math.max(1, parseInt(pageParam ?? "1", 10));
+    const limit = Math.min(
+      100,
+      Math.max(1, parseInt(searchParams.get("limit") ?? "25", 10)),
+    );
+
+    // Board mode sends no "page" param — return all tasks unpaginated
+    if (pageParam !== null) {
+      const [total, tasks] = await Promise.all([
+        Task.countDocuments(query),
+        Task.find(query)
+          .populate("assignedTo", "name email")
+          .populate("createdBy", "name email")
+          .populate("taskList", "name color")
+          .sort({ createdAt: -1 })
+          .skip((page - 1) * limit)
+          .limit(limit),
+      ]);
+
+      const totalPages = Math.ceil(total / limit);
+      return NextResponse.json(
+        {
+          success: true,
+          data: tasks,
+          pagination: {
+            total,
+            page,
+            limit,
+            totalPages,
+            hasNextPage: page < totalPages,
+            hasPrevPage: page > 1,
+          },
+        },
+        { status: 200 },
+      );
+    }
+
     const tasks = await Task.find(query)
       .populate("assignedTo", "name email")
       .populate("createdBy", "name email")

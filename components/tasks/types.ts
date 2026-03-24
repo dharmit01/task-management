@@ -11,6 +11,12 @@ export interface Assignee {
   name: string;
 }
 
+export interface TaskFilterMember extends Assignee {
+  email?: string;
+  role?: "Admin" | "Manager" | "Member";
+  isActive?: boolean;
+}
+
 export interface CreatedBy extends Assignee {
   email: string;
 }
@@ -50,10 +56,27 @@ export interface TaskStats {
   completed: number;
 }
 
+export interface PaginationMeta {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
+export interface TasksApiResponse {
+  success: boolean;
+  data: Task[];
+  pagination?: PaginationMeta;
+}
+
 export interface UseTasksFilters {
   filter?: string;
   status?: string;
   priority?: string;
   taskList?: string;
+  assignedTo?: string;
   search?: string;
+  page?: number;
 }
