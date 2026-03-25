@@ -2,18 +2,33 @@ import { Button } from "@/components/ui/button";
 import { ListTodo, Plus } from "lucide-react";
 import Link from "next/link";
 
-export function TasksPageHeader() {
+interface TasksPageHeaderProps {
+  total?: number;
+  loading?: boolean;
+}
+
+export function TasksPageHeader({ total, loading }: TasksPageHeaderProps) {
   return (
     <section className="relative overflow-hidden rounded-[28px] border border-border/70 bg-background/95 shadow-[0_20px_80px_-48px_rgba(15,23,42,0.65)]">
       <div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-primary/40 to-transparent" />
       <div className="absolute -top-16 right-0 h-40 w-40 rounded-full bg-primary/10 blur-3xl" />
+      <div className="absolute -bottom-10 left-1/3 h-28 w-48 rounded-full bg-primary/5 blur-3xl" />
       <div className="relative flex flex-col gap-4 bg-linear-to-br from-primary/8 via-background to-background px-6 py-6 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
           <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-primary shadow-sm">
             <ListTodo className="h-5 w-5" />
           </div>
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Tasks</h1>
+            <div className="flex items-center gap-2.5">
+              <h1 className="text-2xl font-semibold tracking-tight">Tasks</h1>
+              {loading ? (
+                <span className="inline-block h-5 w-10 animate-pulse rounded-full bg-muted/60" />
+              ) : typeof total === "number" ? (
+                <span className="rounded-full border border-primary/25 bg-primary/8 px-2.5 py-0.5 text-xs font-semibold tabular-nums text-primary/80">
+                  {total.toLocaleString()}
+                </span>
+              ) : null}
+            </div>
             <p className="text-sm text-muted-foreground">
               Manage and track your tasks
             </p>

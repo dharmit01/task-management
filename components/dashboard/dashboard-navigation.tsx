@@ -402,14 +402,12 @@ const NavigationContent = ({
           </div>
         </div>
 
-        <div className="rounded-4xl border border-border/70 bg-card/75 p-2.5 shadow-[0_16px_44px_-34px_rgba(15,23,42,0.45)] backdrop-blur-xl">
-          <GlobalSearch />
-        </div>
+        <GlobalSearch />
       </div>
 
       <div
         className={cn(
-          "mt-4 flex-1 pr-1",
+          "mt-2 flex-1 pr-1",
           compact ? "overflow-y-auto px-1" : "overflow-hidden px-1.5",
         )}
       >

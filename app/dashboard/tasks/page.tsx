@@ -117,7 +117,7 @@ export default function TasksPage() {
 
   return (
     <div className="space-y-6">
-      <TasksPageHeader />
+      <TasksPageHeader total={pagination?.total} loading={loading} />
       <TaskSearchBar
         searchQuery={searchQuery}
         viewMode={viewMode}

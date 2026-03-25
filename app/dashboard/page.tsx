@@ -81,12 +81,6 @@ export default function DashboardPage() {
         <div className="absolute -bottom-12 left-8 h-28 w-28 rounded-full bg-accent/10 blur-3xl" />
         <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="space-y-4">
-            <Badge
-              variant="outline"
-              className="border-border/70 bg-background/75 px-3 py-1 text-xs uppercase tracking-[0.2em]"
-            >
-              Dashboard overview
-            </Badge>
             <div className="space-y-2">
               <h1 className="text-4xl font-semibold tracking-tight text-foreground">
                 Welcome back, {user?.name}
@@ -143,7 +137,7 @@ export default function DashboardPage() {
           badgeText={formatPercent(stats.completionRate)}
         />
         <DashboardStatCard
-          title="Today&apos;s tasks"
+          title="Today's tasks"
           value={formatCompactNumber(stats.today)}
           description="Tasks beginning today that may need immediate attention."
           icon={dashboardIcons.today}
@@ -192,10 +186,12 @@ export default function DashboardPage() {
                 <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-border/70 bg-background/80">
                   <AlertTriangle className="h-6 w-6 text-muted-foreground" />
                 </div>
-                <h2 className="text-xl font-semibold">No company workload yet</h2>
+                <h2 className="text-xl font-semibold">
+                  No company workload yet
+                </h2>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Once task lists and tasks are available, the dashboard will show
-                  company-level workload distribution here.
+                  Once task lists and tasks are available, the dashboard will
+                  show company-level workload distribution here.
                 </p>
               </div>
             </div>
