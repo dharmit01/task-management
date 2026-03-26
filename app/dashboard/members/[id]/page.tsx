@@ -192,6 +192,7 @@ export default function MemberDetailPage({
           limit: pageSize,
         }
       : undefined,
+    { allowFetchWhenFiltersMissing: false },
   );
 
   useEffect(() => {

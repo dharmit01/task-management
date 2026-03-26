@@ -8,7 +8,10 @@ import {
   UseTasksFilters,
 } from "../components/tasks/types";
 
-export const useTasks = (filters?: UseTasksFilters) => {
+export const useTasks = (
+  filters?: UseTasksFilters,
+  options?: { allowFetchWhenFiltersMissing?: boolean },
+) => {
   const [loading, setLoading] = useState(false);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [recentTasks, setRecentTasks] = useState<Task[]>([]);
@@ -24,6 +27,8 @@ export const useTasks = (filters?: UseTasksFilters) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        if (!filters && !options?.allowFetchWhenFiltersMissing) return;
+
         setLoading(true);
 
         const queryParams = new URLSearchParams();
