@@ -32,7 +32,12 @@ export async function GET(request: NextRequest) {
           let: { userId: "$_id" },
           pipeline: [
             { $match: { $expr: { $in: ["$$userId", "$assignedTo"] } } },
-            { $count: "total" },
+            {
+              $group: {
+                _id: "$status",
+                count: { $sum: 1 },
+              },
+            },
           ],
           as: "taskStats",
         },
@@ -40,8 +45,106 @@ export async function GET(request: NextRequest) {
       {
         $addFields: {
           tasksCount: {
-            $ifNull: [{ $arrayElemAt: ["$taskStats.total", 0] }, 0],
+            $reduce: {
+              input: "$taskStats",
+              initialValue: 0,
+              in: { $add: ["$$value", "$$this.count"] },
+            },
           },
+          toDoTasks: {
+            $ifNull: [
+              {
+                $arrayElemAt: [
+                  {
+                    $filter: {
+                      input: "$taskStats",
+                      as: "stat",
+                      cond: { $eq: ["$$stat._id", "ToDo"] },
+                    },
+                  },
+                  0,
+                ],
+              },
+              0,
+            ],
+          },
+          inProgressTasks: {
+            $ifNull: [
+              {
+                $arrayElemAt: [
+                  {
+                    $filter: {
+                      input: "$taskStats",
+                      as: "stat",
+                      cond: { $eq: ["$$stat._id", "In-Progress"] },
+                    },
+                  },
+                  0,
+                ],
+              },
+              0,
+            ],
+          },
+          inReviewTasks: {
+            $ifNull: [
+              {
+                $arrayElemAt: [
+                  {
+                    $filter: {
+                      input: "$taskStats",
+                      as: "stat",
+                      cond: { $eq: ["$$stat._id", "In-Review"] },
+                    },
+                  },
+                  0,
+                ],
+              },
+              0,
+            ],
+          },
+          completedTasks: {
+            $ifNull: [
+              {
+                $arrayElemAt: [
+                  {
+                    $filter: {
+                      input: "$taskStats",
+                      as: "stat",
+                      cond: { $eq: ["$$stat._id", "Completed"] },
+                    },
+                  },
+                  0,
+                ],
+              },
+              0,
+            ],
+          },
+          blockedTasks: {
+            $ifNull: [
+              {
+                $arrayElemAt: [
+                  {
+                    $filter: {
+                      input: "$taskStats",
+                      as: "stat",
+                      cond: { $eq: ["$$stat._id", "Blocked"] },
+                    },
+                  },
+                  0,
+                ],
+              },
+              0,
+            ],
+          },
+        },
+      },
+      {
+        $addFields: {
+          toDoTasks: "$toDoTasks.count",
+          inProgressTasks: "$inProgressTasks.count",
+          inReviewTasks: "$inReviewTasks.count",
+          completedTasks: "$completedTasks.count",
+          blockedTasks: "$blockedTasks.count",
         },
       },
       { $unset: ["password", "taskStats"] },

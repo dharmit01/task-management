@@ -37,7 +37,6 @@ import {
   Shield,
   UserCheck,
   Users,
-  UserX,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -515,13 +514,13 @@ export default function MembersPage() {
             <Table>
               <TableHeader>
                 <TableRow className="border-b border-border/60 bg-linear-to-br from-primary/8 via-background to-background hover:bg-transparent">
-                  <TableHead className="pl-6 w-[22%]">
+                  <TableHead className="pl-6 w-[18%]">
                     <button
                       type="button"
                       onClick={() =>
                         setNameSortDir((d) => (d === "asc" ? "desc" : "asc"))
                       }
-                      className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/70 transition-colors hover:text-foreground"
+                      className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase text-muted-foreground/70 transition-colors hover:text-foreground"
                     >
                       Member
                       {nameSortDir === "asc" ? (
@@ -557,25 +556,34 @@ export default function MembersPage() {
                       )}
                     </button>
                   </TableHead>
-                  <TableHead className="text-center text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/70">
+                  <TableHead className="text-center text-[11px] font-semibold uppercase text-muted-foreground/70">
                     Username
                   </TableHead>
-                  <TableHead className="text-center text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/70">
+                  <TableHead className="text-center text-[11px] font-semibold uppercase text-muted-foreground/70">
                     Role
                   </TableHead>
-                  <TableHead className="text-center text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/70">
+                  <TableHead className="text-center text-[11px] font-semibold uppercase text-muted-foreground/70">
                     Team Info
                   </TableHead>
-                  <TableHead className="text-center text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/70">
-                    Tasks
+                  <TableHead className="text-center text-[11px] font-semibold uppercase text-muted-foreground/70">
+                    Total
                   </TableHead>
-                  <TableHead className="text-center text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/70">
-                    Leave Balance
+                  <TableHead className="text-center text-[11px] font-semibold uppercase text-muted-foreground/70">
+                    To Do
                   </TableHead>
-                  <TableHead className="text-center text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/70">
-                    Status
+                  <TableHead className="text-center text-[11px] font-semibold uppercase text-muted-foreground/70">
+                    In Progress
                   </TableHead>
-                  <TableHead className="pr-6 text-right text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/70">
+                  <TableHead className="text-center text-[11px] font-semibold uppercase text-muted-foreground/70">
+                    Blocked
+                  </TableHead>
+                  <TableHead className="text-center text-[11px] font-semibold uppercase text-muted-foreground/70">
+                    In Review
+                  </TableHead>
+                  <TableHead className="text-center text-[11px] font-semibold uppercase text-muted-foreground/70">
+                    Completed
+                  </TableHead>
+                  <TableHead className="pr-6 text-center text-[11px] font-semibold uppercase text-muted-foreground/70">
                     Actions
                   </TableHead>
                 </TableRow>
@@ -584,7 +592,7 @@ export default function MembersPage() {
                 {paginatedMembers.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={8}
+                      colSpan={11}
                       className="py-16 text-center text-sm text-muted-foreground"
                     >
                       No members match your filters.
@@ -672,48 +680,54 @@ export default function MembersPage() {
                           {teamInfoCell}
                         </TableCell>
 
-                        {/* Assigned tasks */}
+                        {/* Total tasks */}
                         <TableCell className="text-center">
-                          <span className="inline-flex items-center rounded-full border border-border/50 bg-muted/40 px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+                          <span className="inline-flex items-center justify-center rounded-full border border-border/50 bg-muted/40 px-2.5 py-0.5 text-xs font-semibold tabular-nums text-foreground">
                             {member.tasksCount ?? 0}
                           </span>
                         </TableCell>
 
-                        {/* Leave balance */}
+                        {/* To Do */}
                         <TableCell className="text-center">
-                          <span className="inline-flex items-center gap-1 rounded-full border border-border/50 bg-muted/40 px-2.5 py-0.5 text-xs text-muted-foreground">
-                            {member.annualLeaveBalance} days
+                          <span className="inline-flex items-center justify-center rounded-full border border-border/50 bg-muted/40 px-2.5 py-0.5 text-xs tabular-nums text-muted-foreground">
+                            {member.toDoTasks ?? 0}
                           </span>
                         </TableCell>
 
-                        {/* Status */}
+                        {/* In Progress */}
                         <TableCell className="text-center">
-                          {member.isActive ? (
-                            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200/70 bg-emerald-50/70 px-2.5 py-0.5 text-xs font-medium text-emerald-700 dark:border-emerald-800/60 dark:bg-emerald-900/20 dark:text-emerald-400">
-                              <UserCheck className="h-3 w-3" /> Active
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 rounded-full border border-red-200/70 bg-red-50/70 px-2.5 py-0.5 text-xs font-medium text-red-700 dark:border-red-800/60 dark:bg-red-900/20 dark:text-red-400">
-                              <UserX className="h-3 w-3" /> Inactive
-                            </span>
-                          )}
+                          <span className="inline-flex items-center justify-center rounded-full border border-blue-200/60 bg-blue-50/60 px-2.5 py-0.5 text-xs tabular-nums text-blue-700 dark:border-blue-800/60 dark:bg-blue-900/20 dark:text-blue-400">
+                            {member.inProgressTasks ?? 0}
+                          </span>
+                        </TableCell>
+
+                        {/* Blocked */}
+                        <TableCell className="text-center">
+                          <span className="inline-flex items-center justify-center rounded-full border border-red-200/60 bg-red-50/60 px-2.5 py-0.5 text-xs tabular-nums text-red-700 dark:border-red-800/60 dark:bg-red-900/20 dark:text-red-400">
+                            {member.blockedTasks ?? 0}
+                          </span>
+                        </TableCell>
+
+                        {/* In Review */}
+                        <TableCell className="text-center">
+                          <span className="inline-flex items-center justify-center rounded-full border border-violet-200/60 bg-violet-50/60 px-2.5 py-0.5 text-xs tabular-nums text-violet-700 dark:border-violet-800/60 dark:bg-violet-900/20 dark:text-violet-400">
+                            {member.inReviewTasks ?? 0}
+                          </span>
+                        </TableCell>
+
+                        {/* Completed */}
+                        <TableCell className="text-center">
+                          <span className="inline-flex items-center justify-center rounded-full border border-emerald-200/60 bg-emerald-50/60 px-2.5 py-0.5 text-xs tabular-nums text-emerald-700 dark:border-emerald-800/60 dark:bg-emerald-900/20 dark:text-emerald-400">
+                            {member.completedTasks ?? 0}
+                          </span>
                         </TableCell>
 
                         {/* Actions */}
                         <TableCell
-                          className="pr-6 text-right"
+                          className="pr-6 text-center"
                           onClick={(e) => e.stopPropagation()}
                         >
-                          <div className="flex items-center justify-end gap-2">
-                            <Link href={`/dashboard/members/${member._id}`}>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="h-7 rounded-xl border-border/70 text-xs"
-                              >
-                                View
-                              </Button>
-                            </Link>
+                          <div className="flex items-center justify-center gap-2">
                             <Button
                               size="sm"
                               className={`h-7 rounded-xl border text-xs transition-colors ${

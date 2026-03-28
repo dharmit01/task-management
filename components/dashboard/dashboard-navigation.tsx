@@ -371,7 +371,7 @@ const NavigationContent = ({
   );
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col overflow-auto">
       <div className={cn("space-y-3", compact ? "px-1" : "px-1.5")}>
         <div className="rounded-[24px] border border-white/40 bg-linear-to-br from-sidebar via-sidebar to-primary/8 p-4 shadow-[0_20px_60px_-36px_rgba(44,98,239,0.55)] dark:border-white/8">
           <div className="flex items-start justify-between gap-3">
@@ -408,7 +408,7 @@ const NavigationContent = ({
       <div
         className={cn(
           "mt-2 flex-1 pr-1",
-          compact ? "overflow-y-auto px-1" : "overflow-hidden px-1.5",
+          compact ? "overflow-y-auto px-1" : "overflow-y-auto px-1.5",
         )}
       >
         <div className="space-y-4">
@@ -522,7 +522,7 @@ export const DashboardNavigation = ({
         </div>
       </header>
 
-      <aside className="hidden h-screen w-[320px] shrink-0 border-r border-border/70 bg-linear-to-b from-sidebar via-sidebar to-sidebar/92 px-3 py-4 lg:sticky lg:top-0 lg:flex lg:flex-col">
+      <aside className="hidden h-screen w-[320px] shrink-0 overflow-y-auto border-r border-border/70 bg-linear-to-b from-sidebar via-sidebar to-sidebar/92 px-3 py-4 lg:sticky lg:top-0 lg:flex lg:flex-col">
         <NavigationContent
           userName={userName}
           userRole={userRole}
